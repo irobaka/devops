@@ -1,0 +1,20 @@
+@tailwind base;
+@tailwind components;
+
+html {
+    @apply font-body antialiased;
+}
+
+@tailwind utilities;
+
+.container {
+    max-width: 480px;
+
+    @screen sm {
+        max-width: 720px;
+    }
+
+    @screen md {
+        max-width: 1024px;
+    }
+}
