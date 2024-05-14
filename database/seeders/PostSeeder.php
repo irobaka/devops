@@ -18,29 +18,29 @@ class PostSeeder extends Seeder
 
         Post::firstOrCreate([
             'title' => 'Ostrze Erkal po raz drugi',
-            'body' => 'Pod koniec maja Initium wyda "Pieśń zemsty" Grzegorza Wielgusa.'
+            'body' => 'Pod koniec maja Initium wyda "Pieśń zemsty" Grzegorza Wielgusa.',
         ]);
 
         Post::firstOrCreate([
             'title' => 'Historia Śródziemia #4',
             'body' => 'Wydawnictwo Zysk i S-ka przedstawia czwarty tom Historii Śródziemia. "Kształtowanie Śródziemia"
-            Johna Ronalda Ruela Tolkiena ma zaplanowaną premierę na 21 maja 2024 roku.'
+            Johna Ronalda Ruela Tolkiena ma zaplanowaną premierę na 21 maja 2024 roku.',
         ]);
 
         Post::firstOrCreate([
             'title' => 'King Kong nadejdzie wiosną',
-            'body' => 'Jeszcze tej wiosny Nowa Baśń planuje wydać "King Konga" Delosa W. Lovelace\'a.'
+            'body' => 'Jeszcze tej wiosny Nowa Baśń planuje wydać "King Konga" Delosa W. Lovelace\'a.',
         ]);
 
         Post::firstOrCreate([
             'title' => 'Nowa Fantastyka #500',
-            'body' => 'Do sprzedaży trafił majowy, pięćsetny numer miesięcznika Nowa Fantastyka.'
+            'body' => 'Do sprzedaży trafił majowy, pięćsetny numer miesięcznika Nowa Fantastyka.',
         ]);
 
         Post::firstOrCreate([
             'title' => 'Lem wraca',
             'body' => 'Wydawnictwo Literackie prezentuje następne wznowienie książki Stanisława Lema.
-             "Wielkość urojona" ma ustaloną datę premiery na 15 maja 2024 roku.'
+             "Wielkość urojona" ma ustaloną datę premiery na 15 maja 2024 roku.',
         ]);
     }
 }

@@ -11,7 +11,7 @@ class PostsController extends Controller
     public function index()
     {
         return view('posts', [
-            'posts' => Post::orderBy('id', 'DESC')->get()
+            'posts' => Post::orderBy('id', 'DESC')->get(),
         ]);
     }
 
@@ -22,7 +22,7 @@ class PostsController extends Controller
 
     public function show(Post $post)
     {
-        if (!$post->published) {
+        if (! $post->published) {
             abort(404, 'Post nie jest opublikowany.');
         }
 
@@ -37,7 +37,7 @@ class PostsController extends Controller
 
         $post = Post::create([
             'title' => $validated['title'],
-            'body' => $validated['body']
+            'body' => $validated['body'],
         ]);
 
         return redirect(route('posts.index'));

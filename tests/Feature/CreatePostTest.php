@@ -1,6 +1,5 @@
 <?php
 
-
 use function Pest\Laravel\post;
 
 it('should create a new post', function () {
@@ -9,7 +8,7 @@ it('should create a new post', function () {
 
     $data = \App\Models\Post::factory()->make([
         'title' => $title,
-        'body' => $body
+        'body' => $body,
     ])->toArray();
 
     post(route('posts.store'), $data)
