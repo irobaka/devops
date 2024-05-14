@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\PostRequest;
 use App\Models\Post;
+use Illuminate\Http\Response;
 
 class PostsController extends Controller
 {
@@ -29,5 +30,13 @@ class PostsController extends Controller
         ]);
 
         return redirect(route('posts.index'));
+    }
+
+    public function publish(Post $post)
+    {
+        $post->published = true;
+        $post->save();
+
+        return new Response('OK');
     }
 }
