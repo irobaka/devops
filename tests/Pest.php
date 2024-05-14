@@ -11,9 +11,12 @@
 |
 */
 
+use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
+use Tests\TestCase;
+
 uses(
-    Tests\TestCase::class,
-    // Illuminate\Foundation\Testing\RefreshDatabase::class,
+    TestCase::class,
+    LazilyRefreshDatabase::class,
 )->in('Feature');
 
 /*
@@ -27,9 +30,9 @@ uses(
 |
 */
 
-expect()->extend('toBeOne', function () {
-    return $this->toBe(1);
-});
+//expect()->extend('toBeOne', function () {
+//    return $this->toBe(1);
+//});
 
 /*
 |--------------------------------------------------------------------------
