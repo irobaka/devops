@@ -20,6 +20,17 @@ class PostsController extends Controller
         return view('post-create');
     }
 
+    public function show(Post $post)
+    {
+        if (!$post->published) {
+            abort(404, 'Post nie jest opublikowany.');
+        }
+
+        return view('post', [
+            'post' => $post,
+        ]);
+    }
+
     public function store(PostRequest $request)
     {
         $validated = $request->validated();

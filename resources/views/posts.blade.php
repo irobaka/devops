@@ -2,7 +2,8 @@
 
 @section('content')
     @if($posts->isEmpty())
-        <div class="p-4 mb-4 text-sm text-blue-dark rounded-lg bg-yellow-light dark:bg-gray-800 dark:text-red-400" role="alert">
+        <div class="p-4 mb-4 text-sm text-blue-dark rounded-lg bg-yellow-light dark:bg-gray-800 dark:text-red-400"
+             role="alert">
             Brak postów.
         </div>
     @else
@@ -23,6 +24,14 @@
                         <p class="mt-3 text-primary text-base">
                             {{ $post->body }}
                         </p>
+                        @if($post->published)
+                            <p class="text-end mt-5 mb-2">
+                                <a href="{{ route('posts.show', $post) }}"
+                                   class="bg-primary text-white hover:bg-secondary focus:ring-4 focus:ring-yellow-dark focus:outline-none rounded-md text-sm w-full sm:w-auto px-5 py-2.5 text-center">
+                                    Czytaj więcej
+                                </a>
+                            </p>
+                        @endif
                     </div>
                 </div>
             @endforeach
