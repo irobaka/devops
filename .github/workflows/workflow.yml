@@ -51,10 +51,11 @@ jobs:
         with:
           node-version: 18
           cache: 'npm'
-        run: npm install
 
-      - name: Install assets
-        run: npm run build
+      - name: Compile assets
+        run: |
+          npm install
+          npm run build
 
       - name: phpstan
         run: ./vendor/bin/phpstan analyse --memory-limit=1G
