@@ -16,7 +16,7 @@ it('should publish a post', function () {
     expect($post->published)->toBeTrue();
 });
 
-it('should returns 200 if post is unpublished', function () {
+it('should returns 200 if post is published', function () {
     $post = \App\Models\Post::factory()->create(['published' => true]);
 
     get(route('posts.show', ['post' => $post]))
