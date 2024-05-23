@@ -15,9 +15,9 @@ git config --global --add safe.directory $PROJECT_DIR
 
 # the project has not been cloned yet (first deploy)
 if [ ! -d $PROJECT_DIR"/.git" ]; then
-    GIT_SSH_COMMAND='ssh -i /home/id_devops -o IdentifiesOnly=yes' git clone git@github.com:irobaka/devops.git
+    GIT_SSH_COMMAND='ssh -i /home/devops/.ssh/id_devops -o IdentifiesOnly=yes' git clone git@github.com:irobaka/devops.git .
 else
-    GIT_SSH_COMMAND='ssh -u /home/id_devops -o IdentifiesOnly=yes' git pull
+    GIT_SSH_COMMAND='ssh -i /home/devops/.ssh/id_devops -o IdentifiesOnly=yes' git pull
 fi
 
 npm install
@@ -46,6 +46,16 @@ php artisan view:cache
 
 php artisan up
 
-sudo cp $PROJECT_DIR"/deployment/config/nginx/nginx.conf" /etc/nginx/nginx.conf
+sudo cp $PROJECT_DIR"/deployment/config/php-fpm/www.conf" /etc/php/8.2/fpm/pool.d/www.conf
+sudo cp $PROJECT_DIR"/deployment/config/php-fpm/php.ini" /etc/php/8.2/fpm/conf.d/php.ini
+sudo systemctl restart php8.2-fpm.service
+
+sudo cp $PROJECT_DIR"/deployment/config/nginx.conf" /etc/nginx/nginx.conf
 sudo nginx -t
 sudo systemctl reload nginx
+
+sudo cp $PROJECT_DIR"/deployment/config/supervisor/supervisord.conf" /etc/supervisor/conf.d/supervisord.conf
+sudo supervisorctl update
+sudo supervisorctl restart workers:
+
+
