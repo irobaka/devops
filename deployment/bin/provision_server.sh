@@ -58,8 +58,6 @@ echo "* * * * * cd $PROJECT_DIR && php artisan schedule:run >> /dev/null 2>&1" >
 crontab cron_tmp
 rm cron_tmp
 
-cp $PROJECT_DIR"/deployment/config/supervisor/lograte" /etc/logrotate.d/supervisor
-
 if id -u "devops" >/dev/null 2>&1; then
     echo 'user exists'
 else

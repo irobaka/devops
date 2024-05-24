@@ -59,6 +59,8 @@ sudo cp $PROJECT_DIR"/deployment/config/nginx/nginx.conf" /etc/nginx/nginx.conf
 sudo nginx -t
 sudo systemctl reload nginx
 
+cp $PROJECT_DIR"/deployment/config/supervisor/lograte" /etc/logrotate.d/supervisor
+
 sudo cp $PROJECT_DIR"/deployment/config/supervisor/supervisord.conf" /etc/supervisor/conf.d/supervisord.conf
 sudo supervisorctl update
 sudo supervisorctl restart workers:
