@@ -15,9 +15,9 @@ git config --global --add safe.directory $PROJECT_DIR
 
 # the project has not been cloned yet (first deploy)
 if [ ! -d $PROJECT_DIR"/.git" ]; then
-    GIT_SSH_COMMAND='ssh -i /home/devops/.ssh/id_devops -o IdentifiesOnly=yes' git clone git@github.com:irobaka/devops.git .
+    GIT_SSH_COMMAND='ssh -i /home/devops/.ssh/id_devops -o IdentitiesOnly=yes' git clone git@github.com:irobaka/devops.git .
 else
-    GIT_SSH_COMMAND='ssh -i /home/devops/.ssh/id_devops -o IdentifiesOnly=yes' git pull
+    GIT_SSH_COMMAND='ssh -i /home/devops/.ssh/id_devops -o IdentitiesOnly=yes' git pull
 fi
 
 npm install
@@ -33,13 +33,16 @@ if [ ! -f $PROJECT_DIR"/.env" ]; then
 fi
 
 chown -R www-data:www-data $PROJECT_DIR
+chmod -R 777 $PROJECT_DIR"/storage" $PROJECT_DIR"bootstrap/cache"
 
-php artisan storage:link
-php artisan optimize:clear
 
 php artisan down
 
 php artisan migrate --force
+
+php artisan storage:link
+php artisan optimize:clear
+
 php artisan config:cache
 php artisan route:cache
 php artisan view:cache
@@ -50,7 +53,7 @@ sudo cp $PROJECT_DIR"/deployment/config/php-fpm/www.conf" /etc/php/8.2/fpm/pool.
 sudo cp $PROJECT_DIR"/deployment/config/php-fpm/php.ini" /etc/php/8.2/fpm/conf.d/php.ini
 sudo systemctl restart php8.2-fpm.service
 
-sudo cp $PROJECT_DIR"/deployment/config/nginx.conf" /etc/nginx/nginx.conf
+sudo cp $PROJECT_DIR"/deployment/config/nginx/nginx.conf" /etc/nginx/nginx.conf
 sudo nginx -t
 sudo systemctl reload nginx
 
