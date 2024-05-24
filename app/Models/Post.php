@@ -10,4 +10,10 @@ class Post extends Model
     use HasFactory;
 
     protected $fillable = ['title', 'body'];
+
+    public function publish(): void
+    {
+        $this->published = true;
+        $this->save();
+    }
 }
