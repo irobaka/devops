@@ -49,6 +49,8 @@ php artisan view:cache
 
 php artisan up
 
+chown -R www-data:www-data $PROJECT_DIR
+
 sudo cp $PROJECT_DIR"/deployment/config/php-fpm/www.conf" /etc/php/8.2/fpm/pool.d/www.conf
 sudo cp $PROJECT_DIR"/deployment/config/php-fpm/php.ini" /etc/php/8.2/fpm/conf.d/php.ini
 sudo systemctl restart php8.2-fpm.service

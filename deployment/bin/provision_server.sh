@@ -5,19 +5,11 @@ set -e
 POSTGRES_PASSWORD=$1
 SSH_KEY=$2
 
-
 PROJECT_DIR="/var/www/html/devops"
 
 mkdir -p $PROJECT_DIR
 chown -R www-data:www-data $PROJECT_DIR
 cd $PROJECT_DIR
-
-if [ ! -d  $PROJECT_DIR"/.git" ]; then
-    GIT_SSH_COMMAND='ssh -i ~/.ssh/id_devops -o IdentitiesOnly=yes' git clone git@github.com:irobaka/devops.git .
-    cp $PROJECT_DIR"/.env.example" $PROJECT_DIR"/.env"
-    sed -i "/DB_PASSWORD/c\DB_PASSWORD=$POSTGRES_PASSWORD" $PROJECT_DIR"/.env"
-    sed -i "/QUEUE_CONNECTION/c\QUEUE_CONNECTION=database" $PROJECT_DIR"/.env"
-fi
 
 rm -f /usr/bin/node
 rm -f /usr/bin/npm
@@ -57,8 +49,6 @@ php composer-setup.php
 php -r "unlink('composer-setup.php');"
 mv composer.phar /usr/bin/composer
 
-
-
 apt install postgresql -y postgresql-contrib
 
 sudo -u postgres psql -U postgres -c "alter user postgres with password '$POSTGRES_PASSWORD';"
@@ -80,7 +70,6 @@ else
 fi
 
 chown -R devops:devops /home/devops
-chown -R devops:devops /var/www/html
 chmod 700 /home/devops/.ssh
 chmod 644 /home/devops/.ssh/authorized_keys
 
