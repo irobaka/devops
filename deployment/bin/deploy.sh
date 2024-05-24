@@ -33,7 +33,7 @@ if [ ! -f $PROJECT_DIR"/.env" ]; then
 fi
 
 chown -R www-data:www-data $PROJECT_DIR
-chmod -R 777 $PROJECT_DIR"/storage" $PROJECT_DIR"bootstrap/cache"
+chmod -R 777 $PROJECT_DIR"/storage" $PROJECT_DIR"/bootstrap/cache"
 
 
 php artisan down
