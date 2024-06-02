@@ -17,6 +17,6 @@ class PublishPostJob implements ShouldQueue
     {
         Post::where('published', false)
             ->get()
-            ->each(fn(Post $post) => $post->publish());
+            ->each(fn (Post $post) => $post->publish());
     }
 }
