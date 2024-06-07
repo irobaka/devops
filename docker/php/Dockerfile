@@ -35,8 +35,19 @@ RUN mkdir -p /home/$user/.composer && \
     chown -R $user:$user /home/$user && \
     chown -R $user:$user /usr/src
 
+COPY ./composer*.json /usr/src/
 COPY ../../deployment/config/php-fpm/php.ini /usr/local/etc/php/conf.d/php.ini
 COPY ../../deployment/config/php-fpm/www.conf /usr/local/etc/php-fpm.d/www.conf
+COPY ../../deployment/bin/update.sh /usr/src/update.sh
+
+RUN composer install --no-scripts
+
+COPY ../.. .
+
+RUN php artisan storage:link && \
+    chmod +x ./update.sh && \
+    chown -R $user:$user /usr/src && \
+    chmod -R 775 ./storage ./bootstrap/cache
 
 USER $user
 
@@ -50,18 +61,18 @@ COPY ../../deployment/config/php-fpm/x-debug.ini /usr/local/etc/php/conf.d/docke
 USER $user
 
 FROM base as prod
-COPY ../.. .
-RUN composer install
 
 
 FROM dev as dev_worker
-CMD ["/bin/sh", "-c", "nice -n 10 php /usr/src/artisan queue:work --tries=3 --verbose --timeout=30 --sleep=3 --rest=1 --max-jobs=1000 --max-time=3600"]
+COPY ../../deployment/config/supervisor/supervisord.conf /etc/supervisor/conf.d/supervisor.conf
+CMD ["/bin/sh", "-c", "supervisord -c /etc/supervisor/conf.d/supervisor.conf"]
 
 FROM dev as dev_scheduler
 CMD ["/bin/sh", "-c", "nice -n 10 sleep 60 && php /usr/src/artisan schedule:run --verbose --no-interaction"]
 
 FROM prod as prod_worker
-CMD ["/bin/sh", "-c", "nice -n 10 php /usr/src/artisan queue:work --tries=3 --verbose --timeout=30 --sleep=3 --rest=1 --max-jobs=1000 --max-time=3600"]
+COPY ../../deployment/config/supervisor/supervisord.conf /etc/supervisor/conf.d/supervisor.conf
+CMD ["/bin/sh", "-c", "supervisord -c /etc/supervisor/conf.d/supervisor.conf"]
 
 FROM prod as prod_scheduler
 CMD ["/bin/sh", "-c", "nice -n 10 sleep 60 && php /usr/src/artisan schedule:run --verbose --no-interaction"]

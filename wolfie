@@ -110,6 +110,11 @@ else
     display_help
 fi
 
+if [ ! -f ./.env ]; then
+   echo "${BOLD}Creating .env file.${NC}"
+   cp .env.example .env
+fi
+
 # Source the ".env" file so Laravel's environment variables are available...
 # shellcheck source=/dev/null
 if [ -n "$APP_ENV" ] && [ -f ./.env."$APP_ENV" ]; then
@@ -331,7 +336,7 @@ elif [ "$1" == "root-shell" ] || [ "$1" == "root-bash" ]; then
         wolfie_is_not_running
     fi
 
-# Open the site...
+# Show site url...
 elif [ "$1" == "url" ]; then
     shift 1
 

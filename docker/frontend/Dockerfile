@@ -1,11 +1,12 @@
 FROM node:18.20.2-alpine AS base
 WORKDIR /usr/src
+COPY ../.. .
+RUN npm install
 
 FROM base AS dev
 EXPOSE 5173
+CMD ["npm", "run", "dev"]
 
 FROM base AS build
-COPY ../.. .
-RUN npm install
 CMD ["npm", "run", "build"]
 

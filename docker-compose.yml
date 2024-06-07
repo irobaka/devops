@@ -13,12 +13,99 @@ services:
                 user: ${DOCKER_DEFAULT_USER:-devops}
                 uid: ${DOCKER_DEFAULT_UID:-1000}
         volumes:
-            - ./:/usr/src/
+            - ./app:/usr/src/app
+            - ./config:/usr/src/config
+            - ./database:/usr/src/database
+            - ./resources:/usr/src/resources
+            - ./routes:/usr/src/routes
+            - ./storage:/usr/src/storage
+            - ./tests:/usr/src/tests
+            - ./.env:/usr/src/.env
+            - ./composer.json:/usr/src/composer.json
+            - ./composer.lock:/usr/src/composer.lock
+            - ./phpstan.neon.dist:/usr/src/phpstan.neon.dist
+            - ./phpunit.xml:/usr/src/phpunit.xml
+            - ./public:/usr/src/public
         depends_on:
             postgres:
                 condition: service_healthy
             redis:
                 condition: service_healthy
+            update:
+                condition: service_started
+        extra_hosts:
+            - "host.docker.internal:host-gateway"
+
+    update:
+        build:
+            context: .
+            dockerfile: ./docker/php/Dockerfile
+            target: dev
+            args:
+                user: ${DOCKER_DEFAULT_USER:-devops}
+                uid: ${DOCKER_DEFAULT_UID:-1000}
+        restart: no
+        command: sh -c "./update.sh"
+        volumes:
+            - ./composer.json:/usr/src/composer.json
+            - ./composer.lock:/usr/src/composer.lock
+            - ./.env:/usr/src/.env
+            - ./deployment/bin/update.sh:/usr/src/update.sh
+        depends_on:
+            postgres:
+                condition: service_healthy
+
+    scheduler:
+        restart: unless-stopped
+        build:
+            context: .
+            dockerfile: ./docker/php/Dockerfile
+            target: dev_scheduler
+            args:
+                user: ${DOCKER_DEFAULT_USER:-devops}
+                uid: ${DOCKER_DEFAULT_UID:-1000}
+        volumes:
+            - ./app:/usr/src/app
+            - ./config:/usr/src/config
+            - ./database:/usr/src/database
+            - ./routes:/usr/src/routes
+            - ./storage:/usr/src/storage
+            - ./tests:/usr/src/tests
+            - ./.env:/usr/src/.env
+        depends_on:
+            postgres:
+                condition: service_healthy
+            redis:
+                condition: service_healthy
+            update:
+                condition: service_started
+        extra_hosts:
+            - "host.docker.internal:host-gateway"
+
+    worker:
+        restart: unless-stopped
+        build:
+            context: .
+            dockerfile: ./docker/php/Dockerfile
+            target: dev_worker
+            args:
+                user: ${DOCKER_DEFAULT_USER:-devops}
+                uid: ${DOCKER_DEFAULT_UID:-1000}
+        volumes:
+            - ./app:/usr/src/app
+            - ./config:/usr/src/config
+            - ./database:/usr/src/database
+            - ./routes:/usr/src/routes
+            - ./storage:/usr/src/storage
+            - ./tests:/usr/src/tests
+            - ./.env:/usr/src/.env
+        depends_on:
+            postgres:
+                condition: service_healthy
+            redis:
+                condition: service_healthy
+            update:
+                condition: service_started
         extra_hosts:
             - "host.docker.internal:host-gateway"
 
@@ -74,7 +161,19 @@ services:
             dockerfile: ./docker/frontend/Dockerfile
             target: dev
         volumes:
-            - ./:/usr/src/
+            - ./app:/usr/src/app
+            - ./config:/usr/src/config
+            - ./database:/usr/src/database
+            - ./resources:/usr/src/resources
+            - ./routes:/usr/src/routes
+            - ./storage:/usr/src/storage
+            - ./.env:/usr/src/.env
+            - ./package.json:/usr/src/package.json
+            - ./package-lock.json:/usr/src/package-lock.json
+            - ./postcss.config.js:/usr/src/postcss.config.js
+            - ./tailwind.config.js:/usr/src/tailwind.config.js
+            - ./vite.config.js:/usr/src/vite.config.js
+            - ./public:/usr/src/public
         ports:
             - "5173:5173"
         depends_on:

@@ -1,0 +1,11 @@
+.git
+/.idea
+/node_modules
+/vendor
+storage/framework/cache/**
+storage/framework/sessions/**
+storage/framework/views/**
+storage/framework/testing/**
+.phpunit.cache
+.phpunit.result.cache
+public/dist
