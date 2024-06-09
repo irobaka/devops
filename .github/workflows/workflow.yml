@@ -51,7 +51,7 @@ jobs:
         run: docker build -t $SCHEDULER_IMAGE --target=prod_scheduler --build-arg user=devops --build-arg uid=1000 -f docker/Dockerfile.php .
 
       - name: Build Worker image
-        run: docker build -t $APP_IMAGE --target=prod_worker --build-arg user=devops --build-arg uid=1000 -f docker/Dockerfile.php .
+        run: docker build -t $WORKER_IMAGE --target=prod_worker --build-arg user=devops --build-arg uid=1000 -f docker/Dockerfile.php .
 
       - name: Build Nginx image
         run: docker build -t $NGINX_IMAGE -f docker/Dockerfile.nginx .
