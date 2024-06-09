@@ -2,80 +2,75 @@ name: Devops pipeline
 
 on:
   push:
-    branches: ['nonexistingbranch']
+    branches: ['main']
+
+env:
+  APP_IMAGE: irobaka/devops-app:${{ github.sha }}
+  SCHEDULER_IMAGE: irobaka/devops-scheduler:${{ github.sha }}
+  WORKER_IMAGE: irobaka/devops-worker:${{ github.sha }}
+  NGINX_IMAGE: irobaka/devops-nginx:${{ github.sha }}
+  POSTGRES_IMAGE: irobaka/devops-postgres:${{ github.sha }}
+  FRONTEND_IMAGE: irobaka/devops-frontend:${{ github.sha }}
+
 
 jobs:
   tests:
-    runs-on: ubuntu-20.04
-
-    services:
-      postgres:
-        image: postgres:16.3
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: devops_test
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 5432:5432
+    runs-on: ubuntu-latest
 
     steps:
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.2'
-
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Copy .env
-        run: cp .env.ci .env
-
-      - name: Install dependencies
-        run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress
-
-      - name: Generate key
-        run: php artisan key:generate
-
-      - name: Directory permissions
-        run: chmod -R 777 storage bootstrap/cache
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
+      - name: Login to Docker
+        uses: docker/login-action@v2
         with:
-          node-version: 18
-          cache: 'npm'
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Compile assets
-        run: |
-          npm install
-          npm run build
+      - name: Build App image
+        run: docker build -t $APP_IMAGE --target=dev --build-arg user=devops --build-arg uid=1000 -f docker/Dockerfile.php
 
-      - name: phpstan
-        run: ./vendor/bin/phpstan analyse --memory-limit=1G
+      - name: Build Postgres image
+        run: docker build -t POSTGRES_IMAGE -f docker/Dockerfile.postgres
 
-      - name: phpinsights
-        run: |
-          php artisan insights --no-interaction \
-          --min-quality=90 --min-complexity=90 \
-          --min-architecture=90 --min-style=90 \
-          --ansi --format=github-action
+      - name: Run phpstan
+        run: docker run --rm -t $APP_IMAGE ./vendor/bin/phpstan analyze --memory-limit=1G
+
+      - name: Run phpinsights
+        run: docker run --rm -t $APP_IMAGE php artisan insights --no-interaction --min-quality=90 --min-complexity=90 --min-architecture=90 --min-style=90 --ansi --format=github-action
 
       - name: Run tests
-        run: php artisan test
+        run: |
+          docker-compose -f docker-compose.ci.yml up -d
+          docker-compose -f docker-compose.ci.yml exec -T app php artisan test
+          docker-compose -f docker-compose.ci.yml down
 
-#      - name: Copy SSH key
-#        run: |
-#          echo "${{ secrets.SSH_KEY }}" >> ./id_devops
-#          chmod 600 id_devops
-#
-#      - name: Run deploy script
-#        run: |
-#          scp -C -o StrictHostKeyChecking=no -i ./id_devops ./deployment/bin/deploy.sh ${{ secrets.SSH_CONNECTION_STAGING }}:/home/devops/deploy.sh
-#          scp -C -o StrictHostKeyChecking=no -i ./id_devops ./id_devops ${{ secrets.SSH_CONNECTION_STAGING }}:/home/devops/.ssh/id_devops
-#          ssh -tt -o StrictHostKeyChecking=no -i ./id_devops ${{ secrets.SSH_CONNECTION_STAGING }} "chown devops:devops /home/devops/deploy.sh && chmod +x /home/devops/deploy.sh"
-#          ssh -tt -o StrictHostKeyChecking=no -i ./id_devops ${{ secrets.SSH_CONNECTION_STAGING }} "/home/devops/deploy.sh ${{ secrets.POSTGRES_PASSWORD }}"
+      - name: Build Scheduler image
+        run: docker build -t $SCHEDULER_IMAGE --target=scheduler --build-arg user=devops --build-arg uid=1000 -f docker/Dockerfile.php
+
+      - name: Build Worker image
+        run: docker build -t $APP_IMAGE --target=worker --build-arg user=devops --build-arg uid=1000 -f docker/Dockerfile.php
+
+      - name: Build Nginx image
+        run: docker build -t $NGINX_IMAGE -f docker/Dockerfile.php
+
+      - name: Build Frontend image
+        run: docker build -t $FRONTEND_IMAGE --target=prod -f docker/Dockerfile.frontend
+
+      - name: Push App Image
+        run: docker push $APP_IMAGE
+
+      - name: Push Scheduler Image
+        run: docker push $SCHEDULER_IMAGE
+
+      - name: Push Worker Image
+        run: docker push $WORKER_IMAGE
+
+      - name: Push Nginx Image
+        run: docker push $NGINX_IMAGE
+
+      - name: Push Frontend Image
+        run: docker push $FRONTEND_IMAGE
+
+      - name: Push Postgres Image
+        run: docker push $POSTGRES_IMAGE
