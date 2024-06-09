@@ -11,6 +11,8 @@ env:
   NGINX_IMAGE: irobaka/devops-nginx:${{ github.sha }}
   POSTGRES_IMAGE: irobaka/devops-postgres:${{ github.sha }}
   FRONTEND_IMAGE: irobaka/devops-frontend:${{ github.sha }}
+  DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+  DB_USERNAME: ${{ secrets.DB_USERNAME }}
 
 
 jobs:
