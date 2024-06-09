@@ -28,10 +28,10 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Build App image
-        run: docker build -t $APP_IMAGE --target=dev --build-arg user=devops --build-arg uid=1000 -f docker/Dockerfile.php
+        run: docker build -t $APP_IMAGE --target=prod --build-arg user=devops --build-arg uid=1000 -f docker/Dockerfile.php .
 
       - name: Build Postgres image
-        run: docker build -t POSTGRES_IMAGE -f docker/Dockerfile.postgres
+        run: docker build -t POSTGRES_IMAGE -f docker/Dockerfile.postgres .
 
       - name: Run phpstan
         run: docker run --rm -t $APP_IMAGE ./vendor/bin/phpstan analyze --memory-limit=1G
@@ -46,16 +46,16 @@ jobs:
           docker-compose -f docker-compose.ci.yml down
 
       - name: Build Scheduler image
-        run: docker build -t $SCHEDULER_IMAGE --target=scheduler --build-arg user=devops --build-arg uid=1000 -f docker/Dockerfile.php
+        run: docker build -t $SCHEDULER_IMAGE --target=prod_scheduler --build-arg user=devops --build-arg uid=1000 -f docker/Dockerfile.php .
 
       - name: Build Worker image
-        run: docker build -t $APP_IMAGE --target=worker --build-arg user=devops --build-arg uid=1000 -f docker/Dockerfile.php
+        run: docker build -t $APP_IMAGE --target=prod_worker --build-arg user=devops --build-arg uid=1000 -f docker/Dockerfile.php .
 
       - name: Build Nginx image
-        run: docker build -t $NGINX_IMAGE -f docker/Dockerfile.php
+        run: docker build -t $NGINX_IMAGE -f docker/Dockerfile.php .
 
       - name: Build Frontend image
-        run: docker build -t $FRONTEND_IMAGE --target=prod -f docker/Dockerfile.frontend
+        run: docker build -t $FRONTEND_IMAGE --target=prod -f docker/Dockerfile.frontend .
 
       - name: Push App Image
         run: docker push $APP_IMAGE
