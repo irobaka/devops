@@ -18,12 +18,12 @@ services:
       - QUEUE_CONNECTION=sync
       - MAIL_MAILER=log
     depends_on:
-      migrate:
+      update:
         condition: service_started
       postgres-test:
         condition: service_healthy
 
-  migrate:
+  update:
     image: ${APP_IMAGE}
     environment:
       - APP_ENV=local
@@ -37,6 +37,7 @@ services:
       - DB_DATABASE=devops
       - DB_USERNAME=${DB_USERNAME}
       - DB_PASSWORD=${DB_PASSWORD}
+    command: sh -c "./update.sh"
     depends_on:
       postgres-test:
         condition: service_healthy
