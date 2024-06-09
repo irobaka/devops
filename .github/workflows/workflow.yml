@@ -54,7 +54,7 @@ jobs:
         run: docker build -t $APP_IMAGE --target=prod_worker --build-arg user=devops --build-arg uid=1000 -f docker/Dockerfile.php .
 
       - name: Build Nginx image
-        run: docker build -t $NGINX_IMAGE -f docker/Dockerfile.php .
+        run: docker build -t $NGINX_IMAGE -f docker/Dockerfile.nginx .
 
       - name: Build Frontend image
         run: docker build -t $FRONTEND_IMAGE --target=prod -f docker/Dockerfile.frontend .
