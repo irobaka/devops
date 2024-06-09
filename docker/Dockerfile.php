@@ -35,14 +35,14 @@ RUN mkdir -p /home/$user/.composer && \
     chown -R $user:$user /home/$user && \
     chown -R $user:$user /usr/src
 
-COPY ./composer*.json /usr/src/
-COPY ../../deployment/config/php-fpm/php.ini /usr/local/etc/php/conf.d/php.ini
-COPY ../../deployment/config/php-fpm/www.conf /usr/local/etc/php-fpm.d/www.conf
-COPY ../../deployment/bin/update.sh /usr/src/update.sh
+COPY ../composer*.json /usr/src/
+COPY ../deployment/config/php-fpm/php.ini /usr/local/etc/php/conf.d/php.ini
+COPY ../deployment/config/php-fpm/www.conf /usr/local/etc/php-fpm.d/www.conf
+COPY ../deployment/bin/update.sh /usr/src/update.sh
 
 RUN composer install --no-scripts
 
-COPY ../.. .
+COPY .. .
 
 RUN php artisan storage:link && \
     chmod +x ./update.sh && \
@@ -56,7 +56,7 @@ USER root
 
 RUN pecl install xdebug && docker-php-ext-enable xdebug
 
-COPY ../../deployment/config/php-fpm/x-debug.ini /usr/local/etc/php/conf.d/docker-x-debug.ini
+COPY ../deployment/config/php-fpm/x-debug.ini /usr/local/etc/php/conf.d/docker-x-debug.ini
 
 USER $user
 
@@ -64,14 +64,14 @@ FROM base as prod
 
 
 FROM dev as dev_worker
-COPY ../../deployment/config/supervisor/supervisord.conf /etc/supervisor/conf.d/supervisor.conf
+COPY ../deployment/config/supervisor/supervisord.conf /etc/supervisor/conf.d/supervisor.conf
 CMD ["/bin/sh", "-c", "supervisord -c /etc/supervisor/conf.d/supervisor.conf"]
 
 FROM dev as dev_scheduler
 CMD ["/bin/sh", "-c", "nice -n 10 sleep 60 && php /usr/src/artisan schedule:run --verbose --no-interaction"]
 
 FROM prod as prod_worker
-COPY ../../deployment/config/supervisor/supervisord.conf /etc/supervisor/conf.d/supervisor.conf
+COPY ../deployment/config/supervisor/supervisord.conf /etc/supervisor/conf.d/supervisor.conf
 CMD ["/bin/sh", "-c", "supervisord -c /etc/supervisor/conf.d/supervisor.conf"]
 
 FROM prod as prod_scheduler
