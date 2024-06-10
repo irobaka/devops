@@ -93,10 +93,10 @@ jobs:
       - uses: actions/checkout@v3
       - name: Remove images
         run: |
-          ./deployment/bin/remove-image.sh devops-app ${{ github.sha }} ${{ secrets.DOCKERHUB_USERNAME }} ${{ secrets.DOCKERHUB_PASSWORD }}
-          ./deployment/bin/remove-image.sh devops-worker ${{ github.sha }} ${{ secrets.DOCKERHUB_USERNAME }} ${{ secrets.DOCKERHUB_PASSWORD }}
-          ./deployment/bin/remove-image.sh devops-scheduler ${{ github.sha }} ${{ secrets.DOCKERHUB_USERNAME }} ${{ secrets.DOCKERHUB_PASSWORD }}
-          ./deployment/bin/remove-image.sh devops-postgres ${{ github.sha }} ${{ secrets.DOCKERHUB_USERNAME }} ${{ secrets.DOCKERHUB_PASSWORD }}
+          ./deployment/bin/remove-image.sh devops-app ${{ github.sha }} ${{ secrets.DOCKERHUB_USERNAME }} ${{ secrets.DOCKERHUB_TOKEN }}
+          ./deployment/bin/remove-image.sh devops-worker ${{ github.sha }} ${{ secrets.DOCKERHUB_USERNAME }} ${{ secrets.DOCKERHUB_TOKEN }}
+          ./deployment/bin/remove-image.sh devops-scheduler ${{ github.sha }} ${{ secrets.DOCKERHUB_USERNAME }} ${{ secrets.DOCKERHUB_TOKEN }}
+          ./deployment/bin/remove-image.sh devops-postgres ${{ github.sha }} ${{ secrets.DOCKERHUB_USERNAME }} ${{ secrets.DOCKERHUB_TOKEN }}
 
   build-nginx:
     needs: [ test ]
