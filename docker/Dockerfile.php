@@ -60,8 +60,16 @@ COPY ../deployment/config/php-fpm/x-debug.ini /usr/local/etc/php/conf.d/docker-x
 
 USER $user
 
-FROM base as prod
+FROM node:18.20.2-alpine as assets
 
+WORKDIR /usr/src
+COPY ../package.json ../package-lock.json ./
+RUN npm install
+COPY .. .
+RUN npm run build
+
+FROM dev as prod
+COPY --from=assets /usr/src/public/build ./public/build
 
 FROM dev as dev_worker
 COPY ../deployment/config/supervisor/supervisord.conf /etc/supervisor/conf.d/supervisor.conf
@@ -70,9 +78,9 @@ CMD ["/bin/sh", "-c", "supervisord -c /etc/supervisor/conf.d/supervisor.conf"]
 FROM dev as dev_scheduler
 CMD ["/bin/sh", "-c", "nice -n 10 sleep 60 && php /usr/src/artisan schedule:run --verbose --no-interaction"]
 
-FROM prod as prod_worker
+FROM base as prod_worker
 COPY ../deployment/config/supervisor/supervisord.conf /etc/supervisor/conf.d/supervisor.conf
 CMD ["/bin/sh", "-c", "supervisord -c /etc/supervisor/conf.d/supervisor.conf"]
 
-FROM prod as prod_scheduler
+FROM base as prod_scheduler
 CMD ["/bin/sh", "-c", "nice -n 10 sleep 60 && php /usr/src/artisan schedule:run --verbose --no-interaction"]

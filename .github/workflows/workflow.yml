@@ -10,7 +10,6 @@ env:
   WORKER_IMAGE: irobaka/devops-worker:${{ github.sha }}
   NGINX_IMAGE: irobaka/devops-nginx:${{ github.sha }}
   POSTGRES_IMAGE: irobaka/devops-postgres:${{ github.sha }}
-  FRONTEND_IMAGE: irobaka/devops-frontend:${{ github.sha }}
   DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
   DB_USERNAME: ${{ secrets.DB_USERNAME }}
 
@@ -108,20 +107,6 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Build nginx image
-        run: docker build -t $NGINX_IMAGE -f docker/Dockerfile.nginx .
+        run: docker build -t $NGINX_IMAGE --target=prod -f docker/Dockerfile.nginx .
       - name: Push nginx Image
         run: docker push $NGINX_IMAGE
-
-  build-frontend:
-    needs: [ test ]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - name: Build frontend image
-        run: docker build -t $FRONTEND_IMAGE --target=prod -f docker/Dockerfile.frontend .
-      - name: Push frontend Image
-        run: docker push $FRONTEND_IMAGE
