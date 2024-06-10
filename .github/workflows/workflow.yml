@@ -16,63 +16,112 @@ env:
 
 
 jobs:
-  tests:
+  build-app-images:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Login to Docker
-        uses: docker/login-action@v2
+      - uses: actions/checkout@v3
+      - uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Build app images
+        run: |
+          docker build -t $APP_IMAGE --target=prod --build-arg user=devops --build-arg uid=1000 -f docker/Dockerfile.php .
+          docker build -t $SCHEDULER_IMAGE --target=prod_scheduler --build-arg user=devops --build-arg uid=1000 -f docker/Dockerfile.php .
+          docker build -t $WORKER_IMAGE --target=prod_worker --build-arg user=devops --build-arg uid=1000 -f docker/Dockerfile.php .
+      - name: Push app images
+        run: |
+          docker push $APP_IMAGE
+          docker push $SCHEDULER_IMAGE
+          docker push $WORKER_IMAGE
 
-      - name: Build App image
-        run: docker build -t $APP_IMAGE --target=prod --build-arg user=devops --build-arg uid=1000 -f docker/Dockerfile.php .
-
+  build-postgres:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Build Postgres image
         run: docker build -t $POSTGRES_IMAGE -f docker/Dockerfile.postgres .
+      - name: Push Postgres Image
+        run: docker push $POSTGRES_IMAGE
 
+  analyze:
+    needs: [build-app-images, build-postgres]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Pull app image
+        run: docker pull $APP_IMAGE
+      - name: Pull postgres image
+        run: docker pull $POSTGRES_IMAGE
       - name: Run phpstan
         run: docker run --rm -t $APP_IMAGE ./vendor/bin/phpstan analyze --memory-limit=1G
-
       - name: Run phpinsights
         run: docker run --rm -t $APP_IMAGE php artisan insights --no-interaction --min-quality=90 --min-complexity=90 --min-architecture=90 --min-style=90 --ansi --format=github-action
 
-#      - name: Run tests
-#        run: |
-#          docker-compose -f docker-compose.ci.yml up -d
-#          docker-compose -f docker-compose.ci.yml exec -T app php artisan test
-#          docker-compose -f docker-compose.ci.yml down
+  test:
+    needs: [build-app-images, build-postgres]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Pull app image
+        run: docker pull $APP_IMAGE
+      - name: Pull postgres image
+        run: docker pull $POSTGRES_IMAGE
+      - name: Run tests
+        run: |
+          docker-compose -f docker-compose.ci.yml up -d
+          docker-compose -f docker-compose.ci.yml exec -T app php artisan test
+          docker-compose -f docker-compose.ci.yml down
 
-      - name: Build Scheduler image
-        run: docker build -t $SCHEDULER_IMAGE --target=prod_scheduler --build-arg user=devops --build-arg uid=1000 -f docker/Dockerfile.php .
+  remove-images:
+    needs: [ analyze, test ]
+    runs-on: ubuntu-latest
+    if: ${{ always() && contains(needs.*.result, 'failure') }}
+    steps:
+      - uses: actions/checkout@v3
+        name: Remove images
+        run: |
+          ./deployment.bin/remove-image.sh irobaka/devops-app ${{ github.sha }} ${{ secrets.DOCKERHUB_USERNAME }} ${{ secrets.DOCKERHUB_PASSWORD }}
+          ./deployment.bin/remove-image.sh irobaka/devops-worker ${{ github.sha }} ${{ secrets.DOCKERHUB_USERNAME }} ${{ secrets.DOCKERHUB_PASSWORD }}
+          ./deployment.bin/remove-image.sh irobaka/devops-scheduler ${{ github.sha }} ${{ secrets.DOCKERHUB_USERNAME }} ${{ secrets.DOCKERHUB_PASSWORD }}
+          ./deployment.bin/remove-image.sh irobaka/devops-postgres ${{ github.sha }} ${{ secrets.DOCKERHUB_USERNAME }} ${{ secrets.DOCKERHUB_PASSWORD }}
 
-      - name: Build Worker image
-        run: docker build -t $WORKER_IMAGE --target=prod_worker --build-arg user=devops --build-arg uid=1000 -f docker/Dockerfile.php .
-
-      - name: Build Nginx image
+  build-nginx:
+    needs: [ test ]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Build nginx image
         run: docker build -t $NGINX_IMAGE -f docker/Dockerfile.nginx .
-
-      - name: Build Frontend image
-        run: docker build -t $FRONTEND_IMAGE --target=prod -f docker/Dockerfile.frontend .
-
-      - name: Push App Image
-        run: docker push $APP_IMAGE
-
-      - name: Push Scheduler Image
-        run: docker push $SCHEDULER_IMAGE
-
-      - name: Push Worker Image
-        run: docker push $WORKER_IMAGE
-
-      - name: Push Nginx Image
+      - name: Push nginx Image
         run: docker push $NGINX_IMAGE
 
-      - name: Push Frontend Image
+  build-frontend:
+    needs: [ test ]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Build frontend image
+        run: docker build -t $FRONTEND_IMAGE --target=prod -f docker/Dockerfile.frontend .
+      - name: Push frontend Image
         run: docker push $FRONTEND_IMAGE
-
-      - name: Push Postgres Image
-        run: docker push $POSTGRES_IMAGE
