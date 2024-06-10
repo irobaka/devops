@@ -91,7 +91,7 @@ jobs:
     if: ${{ always() && contains(needs.*.result, 'failure') }}
     steps:
       - uses: actions/checkout@v3
-        name: Remove images
+      - name: Remove images
         run: |
           ./deployment.bin/remove-image.sh irobaka/devops-app ${{ github.sha }} ${{ secrets.DOCKERHUB_USERNAME }} ${{ secrets.DOCKERHUB_PASSWORD }}
           ./deployment.bin/remove-image.sh irobaka/devops-worker ${{ github.sha }} ${{ secrets.DOCKERHUB_USERNAME }} ${{ secrets.DOCKERHUB_PASSWORD }}
