@@ -37,7 +37,7 @@ services:
       - DB_DATABASE=devops
       - DB_USERNAME=${DB_USERNAME}
       - DB_PASSWORD=${DB_PASSWORD}
-    command: sh -c "./update.sh"
+    command: sh -c "php artisan config:clear && ./update.sh"
     depends_on:
       postgres-test:
         condition: service_healthy
