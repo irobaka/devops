@@ -18,29 +18,29 @@ services:
       - QUEUE_CONNECTION=sync
       - MAIL_MAILER=log
     depends_on:
-      update:
-        condition: service_started
+#      update:
+#        condition: service_started
       postgres-test:
         condition: service_healthy
 
-  update:
-    image: ${APP_IMAGE}
-    environment:
-      - APP_ENV=local
-      - APP_KEY=base64:TxLOPsLeYEAzuIKnG1pA3gLMHwrtiKBkJfnj4OsqtOE=
-      - APP_DEBUG=true
-      - LOG_CHANNEL=stack
-      - LOG_LEVEL=debug
-      - DB_CONNECTION=pgsql
-      - DB_HOST=postgres-test
-      - DB_PORT=5432
-      - DB_DATABASE=devops
-      - DB_USERNAME=${DB_USERNAME}
-      - DB_PASSWORD=${DB_PASSWORD}
-    command: sh -c "php artisan config:clear && ./update.sh"
-    depends_on:
-      postgres-test:
-        condition: service_healthy
+#  update:
+#    image: ${APP_IMAGE}
+#    environment:
+#      - APP_ENV=local
+#      - APP_KEY=base64:TxLOPsLeYEAzuIKnG1pA3gLMHwrtiKBkJfnj4OsqtOE=
+#      - APP_DEBUG=true
+#      - LOG_CHANNEL=stack
+#      - LOG_LEVEL=debug
+#      - DB_CONNECTION=pgsql
+#      - DB_HOST=postgres-test
+#      - DB_PORT=5432
+#      - DB_DATABASE=devops
+#      - DB_USERNAME=${DB_USERNAME}
+#      - DB_PASSWORD=${DB_PASSWORD}
+#    command: sh -c "php artisan config:clear && ./update.sh"
+#    depends_on:
+#      postgres-test:
+#        condition: service_healthy
 
   postgres-test:
     image: ${POSTGRES_IMAGE}
