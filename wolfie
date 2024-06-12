@@ -193,10 +193,11 @@ elif [ "$1" == "artisan" ] || [ "$1" == "art" ] || [ "$1" == "a" ]; then
 
 # Proxy the "debug" command to the "php artisan" binary on the application container with xdebug enabled...
 elif [ "$1" == "debug" ]; then
-    shift 1
+    shift 1o
 
     if [ "$EXEC" == "yes" ]; then
-        ARGS+=(exec -e XDEBUG_TRIGGER=1)
+        ARGS+=(exec -e XDEBUG_TRIGGER=1 -e PHP_IDE_CONFIG="serverName=devops.gmajta.dev")
+
         [ ! -t 0 ] && ARGS+=(-T)
         ARGS+=(app php artisan "$@")
     else
