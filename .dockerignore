@@ -9,3 +9,4 @@ storage/framework/testing/**
 .phpunit.cache
 .phpunit.result.cache
 public/dist
+.env
