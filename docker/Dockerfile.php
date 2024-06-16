@@ -26,7 +26,8 @@ RUN docker-php-ext-install mbstring exif pcntl bcmath gd zip
 RUN docker-php-ext-configure pgsql -with-pgsql=/usr/local/pgsql \
     && docker-php-ext-install pgsql pdo_pgsql
 
-RUN pecl install redis
+RUN pecl install redis \
+    && docker-php-ext-enable redis
 
 COPY --from=composer:2.7.6 /usr/bin/composer /usr/bin/composer
 
