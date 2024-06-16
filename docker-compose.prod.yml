@@ -67,7 +67,7 @@ services:
         condition: service_started
 
   redis:
-    image: irobaka/devops-redis:${IMAGE_TAG}
+    image: redis:7.2.4-alpine
     restart: unless-stopped
     volumes:
       - redis:/data
