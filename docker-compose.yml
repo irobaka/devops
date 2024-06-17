@@ -8,7 +8,7 @@ services:
         build:
             context: .
             dockerfile: docker/Dockerfile.php
-            target: prod
+            target: dev
             args:
                 user: ${DOCKER_DEFAULT_USER:-devops}
                 uid: ${DOCKER_DEFAULT_UID:-1000}
