@@ -17,7 +17,8 @@ RUN apt-get update && apt-get install -y \
     unzip \
     supervisor \
     libssl-dev \
-    postgresql-client
+    postgresql-client \
+    s3cmd
 
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 
