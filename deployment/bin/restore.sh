@@ -30,7 +30,7 @@ read_env() {
 
 read_env
 
-docker compose exec app s3cmd --access_key=$AWS_ACCESS_KEY_ID --secret_key=$AWS_SECRET_ACCESS_KEY --region=$AWS_DEFAULT_REGION --host=fra1.digitaloceanspaces.com --host-bucket="%(bucket)s.fra1.digitaloceanspaces.com" get s3://gmdevops/$BACKUP_FILENAME $PROJECT_DIR"/storage/app/backup.zip"
+docker compose exec app s3cmd --access_key=$AWS_ACCESS_KEY_ID --secret_key=$AWS_SECRET_ACCESS_KEY --region=$AWS_DEFAULT_REGION --host=fra1.digitaloceanspaces.com --host-bucket="%(bucket)s.fra1.digitaloceanspaces.com" get s3://gmdevops2/$BACKUP_FILENAME $PROJECT_DIR"/storage/app/backup.zip"
 
 docker compose exec app unzip -o $PROJECT_DIR"/storage/app/backup.zip" -d $BACKUP_DIR
 docker compose exec app rm $PROJECT_DIR"/storage/app/backup.zip"
