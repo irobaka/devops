@@ -76,14 +76,14 @@ COPY --from=assets /usr/src/public/build ./public/build
 
 FROM dev as dev_worker
 COPY ../deployment/config/supervisor/supervisord.conf /etc/supervisor/conf.d/supervisor.conf
-CMD ["/bin/sh", "-c", "supervisord -c /etc/supervisor/conf.d/supervisor.conf"]
+CMD ["/bin/sh", "/usr/src/worker.sh"]
 
 FROM dev as dev_scheduler
-CMD ["/bin/sh", "-c", "nice -n 10 sleep 60 && php /usr/src/artisan schedule:run --verbose --no-interaction"]
+CMD ["/bin/sh", "/usr/src/scheduler.sh"]
 
 FROM base as prod_worker
 COPY ../deployment/config/supervisor/supervisord.conf /etc/supervisor/conf.d/supervisor.conf
-CMD ["/bin/sh", "-c", "supervisord -c /etc/supervisor/conf.d/supervisor.conf"]
+CMD ["/bin/sh", "-c", "/usr/src/worker.sh"]
 
 FROM base as prod_scheduler
-CMD ["/bin/sh", "-c", "nice -n 10 sleep 60 && php /usr/src/artisan schedule:run --verbose --no-interaction"]
+CMD ["/bin/sh", "/usr/src/scheduler.sh"]
