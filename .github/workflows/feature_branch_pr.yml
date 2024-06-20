@@ -127,7 +127,7 @@ jobs:
             sed -i "/AWS_DEFAULT_REGION/c\AWS_DEFAULT_REGION=${{ secrets.AWS_DEFAULT_REGION }}" /usr/src/.env
             sed -i "/AWS_BUCKET/c\AWS_BUCKET=${{ secrets.AWS_BUCKET }}-demo" /usr/src/.env
             sed -i "/AWS_ENDPOINT/c\AWS_ENDPOINT=${{ secrets.AWS_ENDPOINT }}" /usr/src/.env
-            sed -i "/APP_KEY/c\APP_KEY=${{ secrets.APP_KEY }}" /usr/src/.env"
-            sed -i "/APP_URL/c\APP_URL=${{ needs.provision-demo-server.outputs.demo_server_ip }}" /usr/src/.env"
+            sed -i "/APP_KEY/c\APP_KEY=${{ secrets.APP_KEY }}" /usr/src/.env
+            sed -i "/APP_URL/c\APP_URL=${{ needs.provision-demo-server.outputs.demo_server_ip }}" /usr/src/.env
             sed -i "/BACKUP_NAME/c\BACKUP_NAME=${{ secrets.BACKUP_NAME }}_demo" /usr/src/.env"
           ssh -tt -o StrictHostKeyChecking=no -i ./id_rsa $SSH_CONNECTION_DEMO "chmod +x /home/devops/deploy.sh && /home/devops/deploy.sh"
