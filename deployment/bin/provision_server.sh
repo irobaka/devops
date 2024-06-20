@@ -28,7 +28,11 @@ else
     chown -R devops:devops /usr/src
     chmod 700 /home/devops/.ssh
     chmod 644 /home/devops/.ssh/authorized_keys
-    echo "$PUBLIC_SSH_KEY" >> /home/devops/.ssh/authorized_keys
+
+    if [ -n "$PUBLIC_SSH_KEY" ]; then
+      echo "$PUBLIC_SSH_KEY" >> /home/devops/.ssh/authorized_keys
+    fi
+
     echo "devops ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers.d/devops
 
     echo 'user added'

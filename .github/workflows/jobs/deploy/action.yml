@@ -1,0 +1,79 @@
+name: 'Deploy'
+description: 'Deploy a server'
+inputs:
+  ssh-key:
+    description: 'Content of the private SSH key'
+    required: true
+  ssh-connection:
+    description: 'SSH connection string'
+    required: true
+  image-tag:
+    description: 'Docker image tag'
+    required: true
+  aws-access-key:
+    description: 'AWS access key'
+    required: true
+  aws-secret-access-key:
+    description: 'AWS secret access key'
+    required: true
+  aws-bucket:
+    description: 'AWS bucket name'
+    required: true
+  aws-default-region:
+    description: 'AWS default region'
+    required: true
+  aws-endpoint:
+    description: 'AWS endpoint'
+    required: true
+  db-password:
+    description: 'DB password'
+    required: true
+  db-username:
+    description: 'DB username'
+    required: true
+  app-key:
+    description: 'App key'
+    required: true
+  backup-name:
+    description: 'Backup name'
+    required: true
+  dockerhub-username:
+    description: 'DockerHub username'
+    required: true
+  dockerhub-token:
+    description: 'DockerHub access token'
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - run: |
+        echo "${{ inputs.ssh-key }}" >> ./id_rsa
+        chmod 600 id_rsa
+      shell: bash
+    - run: |
+        scp -C -o StrictHostKeyChecking=no -i ./id_rsa ./deployment/bin/deploy.sh ${{ inputs.ssh-connection }}:/home/devops/deploy.sh
+        scp -C -o StrictHostKeyChecking=no -i ./id_rsa ./docker-compose.prod.yml ${{ inputs.ssh-connection }}:/usr/src/docker-compose.prod.yml
+        scp -C -o StrictHostKeyChecking=no -i ./id_rsa ./.env.prod.template ${{ inputs.ssh-connection }}:/usr/src/.env
+        ssh -tt -o StrictHostKeyChecking=no -i ./id_rsa ${{ inputs.ssh-connection }} "chmod +x /home/devops/deploy.sh"
+        ssh -tt -o StrictHostKeyChecking=no -i ./id_rsa ${{ inputs.ssh-connection }} "
+          sed -i "/IMAGE_TAG/c\IMAGE_TAG=${{ inputs.image-tag }}" /usr/src/.env
+
+          sed -i "/COMPOSE_PROJECT_NAME/c\COMPOSE_PROJECT_NAME=devops" /usr/src/.env
+
+          sed -i "/DOCKERHUB_USERNAME/c\DOCKERHUB_USERNAME=${{ inputs.dockerhub-username }}" /usr/src/.env
+          sed -i "/DOCKERHUB_PASSWORD/c\DOCKERHUB_PASSWORD=${{ inputs.dockerhub-token }}" /usr/src/.env
+
+          sed -i "/AWS_ACCESS_KEY_ID/c\AWS_ACCESS_KEY_ID=${{ inputs.aws-access-key }}" /usr/src/.env
+          sed -i "/AWS_SECRET_ACCESS_KEY/c\AWS_SECRET_ACCESS_KEY=${{ inputs.aws-secret-access-key }}" /usr/src/.env
+          sed -i "/AWS_BUCKET/c\AWS_BUCKET=${{ inputs.aws-bucket }}" /usr/src/.env
+          sed -i "/AWS_DEFAULT_REGION/c\AWS_DEFAULT_REGION=${{ inputs.aws-default-region }}" /usr/src/.env
+          sed -i "/AWS_ENDPOINT/c\AWS_ENDPOINT=${{ inputs.aws-endpoint }}" /usr/src/.env
+
+          sed -i "/DB_PASSWORD/c\DB_PASSWORD=${{ inputs.db-password }}" /usr/src/.env
+          sed -i "/DB_USERNAME/c\DB_USERNAME=${{ inputs.db-username }}" /usr/src/.env
+
+          sed -i "/APP_KEY/c\APP_KEY=${{ inputs.app-key }}" /usr/src/.env"
+          sed -i "/BACKUP_NAME/c\BACKUP_NAME=${{ inputs.backup-name }}" /usr/src/.env"
+        ssh -tt -o StrictHostKeyChecking=no -i ./id_rsa ${{ inputs.ssh-connection }} "/home/devops/deploy.sh"
+      shell: bash

@@ -1,0 +1,21 @@
+name: 'Build nginx'
+description: 'Build nginx'
+inputs:
+  dockerhub-username:
+    description: 'DockerHub username'
+    required: true
+  dockerhub-token:
+    description: 'DockerHub access token'
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - uses: docker/login-action@v2
+      with:
+        username: ${{ inputs.dockerhub-username }}
+        password: ${{ inputs.dockerhub-token }}
+    - run: |
+        docker build -t $NGINX_IMAGE --target=prod -f docker/Dockerfile.nginx .
+        docker push $NGINX_IMAGE
+      shell: bash
