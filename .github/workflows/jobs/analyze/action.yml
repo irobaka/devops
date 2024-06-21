@@ -1,0 +1,25 @@
+name: 'Analyze'
+description: 'Runs static analysis'
+inputs:
+  dockerhub-username:
+    description: 'DockerHub username'
+    required: true
+  dockerhub-token:
+    description: 'DockerHub access token'
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - uses: docker/login-action@v2
+      with:
+        username: ${{ inputs.dockerhub-username }}
+        password: ${{ inputs.dockerhub-token }}
+    - run: docker pull $APP_IMAGE
+      shell: bash
+    - run: docker pull $POSTGRES_IMAGE
+      shell: bash
+    - run: docker run --rm -t $APP_IMAGE ./vendor/bin/phpstan analyze --memory-limit=1G
+      shell: bash
+    - run: docker run --rm -t $APP_IMAGE php artisan insights --no-interaction --min-quality=90 --min-complexity=90 --min-architecture=90 --min-style=90 --ansi --format=github-action
+      shell: bash

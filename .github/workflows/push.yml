@@ -1,0 +1,122 @@
+name: Push
+
+on:
+  push:
+    branches: ['main', 'develop']
+
+env:
+  APP_IMAGE: irobaka/devops-app:${{ github.sha }}
+  SCHEDULER_IMAGE: irobaka/devops-scheduler:${{ github.sha }}
+  WORKER_IMAGE: irobaka/devops-worker:${{ github.sha }}
+  NGINX_IMAGE: irobaka/devops-nginx:${{ github.sha }}
+  POSTGRES_IMAGE: irobaka/devops-postgres:${{ github.sha }}
+  DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+  DB_USERNAME: ${{ secrets.DB_USERNAME }}
+
+
+jobs:
+  build-app-images:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./.github/workflows/jobs/build-app-images
+        with:
+          dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
+          dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
+
+  build-postgres:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./.github/workflows/jobs/build-postgres
+        with:
+          dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
+          dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
+
+  analyze:
+    needs: [build-app-images, build-postgres]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./.github/workflows/jobs/analyze
+        with:
+          dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
+          dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
+
+  test:
+    needs: [build-app-images, build-postgres]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./.github/workflows/jobs/test
+        with:
+          dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
+          dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
+
+  remove-images:
+    needs: [ analyze, test ]
+    runs-on: ubuntu-latest
+    if: ${{ always() && contains(needs.*.result, 'failure') }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./.github/workflows/jobs/remove-images
+        with:
+          dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
+          dockerhub-token: ${{ secrets.DOCKERHUB_PASSWORD }}
+          image-tag: ${{ github.sha }}
+
+  build-nginx:
+    needs: [ analyze, test ]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./.github/workflows/jobs/build-nginx
+        with:
+          dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
+          dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
+
+  deploy-prod:
+    needs: [ build-nginx ]
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./.github/workflows/jobs/deploy
+        with:
+          ssh-key: ${{ secrets.SSH_KEY }}
+          ssh-connection: ${{ secrets.PROD_SERVER }}
+          image-tag: ${{ github.sha }}
+          aws-access-key: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-bucket: ${{ secrets.AWS_BUCKET }}
+          aws-default-region: ${{ secrets.AWS_DEFAULT_REGION }}
+          aws-endpoint: ${{ secrets.AWS_ENDPOINT }}
+          db-password: ${{ secrets.DB_PASSWORD }}
+          db-username: ${{ secrets.DB_USERNAME }}
+          app-key: ${{ secrets.APP_KEY }}
+          backup-name: ${{ secrets.BACKUP_NAME }}
+          dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
+          dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
+
+  deploy-staging:
+    needs: [ build-nginx ]
+    if: github.ref == 'refs/heads/develop'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./.github/workflows/jobs/deploy
+        with:
+          ssh-key: ${{ secrets.SSH_KEY }}
+          ssh-connection: ${{ secrets.STAGE_SERVER }}
+          image-tag: ${{ github.sha }}
+          aws-access-key: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-bucket: ${{ secrets.AWS_BUCKET }}
+          aws-default-region: ${{ secrets.AWS_DEFAULT_REGION }}
+          aws-endpoint: ${{ secrets.AWS_ENDPOINT }}
+          db-password: ${{ secrets.DB_PASSWORD }}
+          db-username: ${{ secrets.DB_USERNAME }}
+          app-key: ${{ secrets.APP_KEY }}
+          backup-name: ${{ secrets.BACKUP_NAME }}_stage
+          dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
+          dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
