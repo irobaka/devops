@@ -11,11 +11,11 @@ wget https://github.com/digitalocean/doctl/releases/download/v1.107.0/doctl-1.10
 tar xf ./doctl-1.107.0-linux-amd64.tar.gz
 mv ./doctl /usr/local/bin
 
-TEST1 = test1
+TEST1 = "test1"
 
 EXISTING_DROPLET=$(doctl compute droplet list --access-token $DOCTL_TOKEN | grep $NAME)
 
-TEST2 = test2
+TEST2 = "test2"
 
 if [ ${#EXISTING_DROPLET} -gt 0 ]; then
   SERVER_IP=$(echo $EXISTING_DROPLET | awk '{ print $3 }')
@@ -23,7 +23,7 @@ if [ ${#EXISTING_DROPLET} -gt 0 ]; then
   exit 0
 fi
 
-TEST3 = test3
+TEST3 = "test3"
 
 
 SSH_FINGERPRINT=$(doctl compute ssh-key list --no-header --access-token $DOCTL_TOKEN | grep "legion5pro" | awk '{ print $3 }')
