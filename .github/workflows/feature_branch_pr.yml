@@ -89,7 +89,7 @@ jobs:
           echo "$SERVER_IP" >> "$GITHUB_OUTPUT"
 
   build-nginx:
-    needs: [ analyze, test ]
+    needs: [ provision-demo-server ]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3

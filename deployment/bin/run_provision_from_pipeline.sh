@@ -8,7 +8,7 @@ SSH_KEY_PRIVATE_LOCATION=$3
 SIZE=${4:-s-1vcpu-1gb}
 
 wget https://github.com/digitalocean/doctl/releases/download/v1.107.0/doctl-1.107.0-linux-amd64.tar.gz
-tar xf ./doctl-1.94.0-linux-amd64.tar.gz
+tar xf ./doctl-1.107.0-linux-amd64.tar.gz
 mv ./doctl /usr/local/bin
 
 EXISTING_DROPLET=$(doctl compute droplet list --access-token $DOCTL_TOKEN | grep $NAME)
