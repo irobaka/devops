@@ -11,7 +11,7 @@ wget https://github.com/digitalocean/doctl/releases/download/v1.107.0/doctl-1.10
 tar xf ./doctl-1.107.0-linux-amd64.tar.gz
 mv ./doctl /usr/local/bin
 
-EXISTING_DROPLET=$(doctl compute droplet list --access-token $DOCTL_TOKEN | grep $NAME)
+EXISTING_DROPLET=$(doctl compute droplet list --access-token $DOCTL_TOKEN) | grep $NAME
 
 COUNT=${#EXISTING_DROPLET}
 
