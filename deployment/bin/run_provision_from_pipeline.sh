@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -ex
+set -e
 
 NAME=$1
 DOCTL_TOKEN=$2
@@ -11,13 +11,13 @@ wget https://github.com/digitalocean/doctl/releases/download/v1.107.0/doctl-1.10
 tar xf ./doctl-1.107.0-linux-amd64.tar.gz
 mv ./doctl /usr/local/bin
 
-#EXISTING_DROPLET=$(doctl compute droplet list --access-token $DOCTL_TOKEN | grep $NAME)
+EXISTING_DROPLET=$(doctl compute droplet list --access-token $DOCTL_TOKEN | grep $NAME)
 
-#if [ ${#EXISTING_DROPLET} -gt 0 ]; then
-#  SERVER_IP=$(echo $EXISTING_DROPLET | awk '{ print $3 }')
-#  echo $SERVER_IP
-#  exit 0
-#fi
+if [ ${#EXISTING_DROPLET} -gt 0 ]; then
+  SERVER_IP=$(echo $EXISTING_DROPLET | awk '{ print $3 }')
+  echo $SERVER_IP
+  exit 0
+fi
 
 SSH_FINGERPRINT=$(doctl compute ssh-key list --no-header --access-token $DOCTL_TOKEN | grep "legion5pro" | awk '{ print $3 }')
 
