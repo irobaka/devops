@@ -116,7 +116,7 @@ jobs:
           ssh -tt -o StrictHostKeyChecking=no -i ./id_rsa $SSH_CONNECTION_DEMO "chown devops:devops /usr/src/docker-compose.prod.yml"
           ssh -tt -o StrictHostKeyChecking=no -i ./id_rsa $SSH_CONNECTION_DEMO "chown devops:devops /usr/src/.env"
           ssh -tt -o StrictHostKeyChecking=no -i ./id_rsa $SSH_CONNECTION_DEMO "
-            sed -i "/IMAGE_TAG/c\IMAGE_TAG=${{ github.sha }}" /usr/src/.env
+            sed -i "/IMAGE_TAG/c\IMAGE_TAG=${{ github.sha }}-demo" /usr/src/.env
             sed -i "/COMPOSE_PROJECT_NAME/c\COMPOSE_PROJECT_NAME=posts" /usr/src/.env
 
             sed -i "/DOCKERHUB_USERNAME/c\DOCKERHUB_USERNAME=${{ secrets.DOCKERHUB_USERNAME }}" /usr/src/.env
