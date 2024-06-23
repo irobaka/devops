@@ -85,11 +85,11 @@ jobs:
         run: |
           cp ./deployment/bin/provision_server.sh .
           SERVER_NAME=$(echo $GITHUB_HEAD_REF | sed 's/.*\///')
-          SERVER_IP=$(./deployment/bin/run_provision_from_pipeline.sh $SERVER_NAME ${{ secrets.DOCTL_TOKEN }} "$(pwd)")
-          echo "$SERVER_IP" >> "$GITHUB_OUTPUT"
+          SERVER_IP=$(./deployment/bin/run_provision_from_pipeline.sh $SERVER_NAME ${{ secrets.DOCTL_TOKEN }} "$(pwd)" | tail -1)
+          echo "SERVER_IP=$SERVER_IP" >> "$GITHUB_OUTPUT"
 
   build-nginx:
-    needs: [ analyze, test ]
+    needs: [ provision-demo-server ]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -99,7 +99,7 @@ jobs:
           dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
 
   deploy-demo:
-    needs: [ build-nginx ]
+    needs: [ build-nginx, provision-demo-server ]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -116,7 +116,7 @@ jobs:
           ssh -tt -o StrictHostKeyChecking=no -i ./id_rsa $SSH_CONNECTION_DEMO "chown devops:devops /usr/src/docker-compose.prod.yml"
           ssh -tt -o StrictHostKeyChecking=no -i ./id_rsa $SSH_CONNECTION_DEMO "chown devops:devops /usr/src/.env"
           ssh -tt -o StrictHostKeyChecking=no -i ./id_rsa $SSH_CONNECTION_DEMO "
-            sed -i "/IMAGE_TAG/c\IMAGE_TAG=${{ github.sha }}" /usr/src/.env
+            sed -i "/IMAGE_TAG/c\IMAGE_TAG=${{ github.sha }}-demo" /usr/src/.env
             sed -i "/COMPOSE_PROJECT_NAME/c\COMPOSE_PROJECT_NAME=posts" /usr/src/.env
 
             sed -i "/DOCKERHUB_USERNAME/c\DOCKERHUB_USERNAME=${{ secrets.DOCKERHUB_USERNAME }}" /usr/src/.env
