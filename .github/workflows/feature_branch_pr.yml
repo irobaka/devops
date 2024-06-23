@@ -86,7 +86,7 @@ jobs:
           cp ./deployment/bin/provision_server.sh .
           SERVER_NAME=$(echo $GITHUB_HEAD_REF | sed 's/.*\///')
           SERVER_IP=$(./deployment/bin/run_provision_from_pipeline.sh $SERVER_NAME ${{ secrets.DOCTL_TOKEN }} "$(pwd)" | tail -1)
-          echo "demo_server_ip=$SERVER_IP" >> "$GITHUB_OUTPUT"
+          echo "SERVER_IP=$SERVER_IP" >> "$GITHUB_OUTPUT"
 
   build-nginx:
     needs: [ provision-demo-server ]
@@ -99,7 +99,7 @@ jobs:
           dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
 
   deploy-demo:
-    needs: [ build-nginx ]
+    needs: [ build-nginx, provision-demo-server ]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
