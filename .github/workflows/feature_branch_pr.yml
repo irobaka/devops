@@ -8,128 +8,30 @@ env:
   APP_IMAGE: irobaka/devops-app:${{ github.sha }}-demo
   SCHEDULER_IMAGE: irobaka/devops-scheduler:${{ github.sha }}-demo
   WORKER_IMAGE: irobaka/devops-worker:${{ github.sha }}-demo
-  NGINX_IMAGE: irobaka/devops-nginx:${{ github.sha }}-demo
   POSTGRES_IMAGE: irobaka/devops-postgres:${{ github.sha }}-demo
   DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
   DB_USERNAME: ${{ secrets.DB_USERNAME }}
 
 
 jobs:
-  build-app-images:
+  build-and-test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: ./.github/workflows/jobs/build-app-images
-        with:
-          dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
-          dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
-
-  build-postgres:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: ./.github/workflows/jobs/build-postgres
-        with:
-          dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
-          dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
-
-  analyze:
-    needs: [build-app-images, build-postgres]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: ./.github/workflows/jobs/analyze
-        with:
-          dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
-          dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
-
-  test:
-    needs: [build-app-images, build-postgres]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: ./.github/workflows/jobs/test
-        with:
-          dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
-          dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
-
-  remove-images:
-    needs: [ analyze, test ]
-    runs-on: ubuntu-latest
-    if: ${{ always() && contains(needs.*.result, 'failure') }}
-    steps:
-      - uses: actions/checkout@v3
-      - uses: ./.github/workflows/jobs/remove-images
-        with:
-          dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
-          dockerhub-token: ${{ secrets.DOCKERHUB_PASSWORD }}
-          image-tag: ${{ github.sha }}-demo
-
-  provision-demo-server:
-    needs: [ analyze, test ]
-    runs-on: ubuntu-latest
-    outputs:
-      demo_server_ip: ${{ steps.create-demo-server.outputs.SERVER_IP }}
-    steps:
-      - uses: actions/checkout@v3
-      - uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - name: Copy SSH key
+      - name: Build images
         run: |
-          echo "${{ secrets.SSH_KEY }}" >> ./id_rsa
-          chmod 600 ./id_rsa
-      - name: Create demo server
-        id: create-demo-server
+          docker build -t $APP_IMAGE --target=prod --build-arg user=devops --build-arg uid=1000 -f docker/Dockerfile.php .
+          docker build -t $SCHEDULER_IMAGE --target=prod_scheduler --build-arg user=devops --build-arg uid=1000 -f docker/Dockerfile.php .
+          docker build -t $WORKER_IMAGE --target=prod_worker --build-arg user=devops --build-arg uid=1000 -f docker/Dockerfile.php .
+          docker build -t $POSTGRES_IMAGE -f docker/Dockerfile.postgres .
+      - name: Run phpstan
+        run: docker run --rm -t $APP_IMAGE ./vendor/bin/phpstan analyze --memory-limit=1G
+      - name: Run phpinsights
+        run: docker run --rm -t $APP_IMAGE php artisan insights --no-interaction --min-quality=90 --min-complexity=90 --min-architecture=90 --min-style=90 --ansi --format=github-action
+      - name: Run test
         run: |
-          cp ./deployment/bin/provision_server.sh .
-          SERVER_NAME=$(echo $GITHUB_HEAD_REF | sed 's/.*\///')
-          SERVER_IP=$(./deployment/bin/run_provision_from_pipeline.sh $SERVER_NAME ${{ secrets.DOCTL_TOKEN }} "$(pwd)" | tail -1)
-          echo "SERVER_IP=$SERVER_IP" >> "$GITHUB_OUTPUT"
-
-  build-nginx:
-    needs: [ provision-demo-server ]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: ./.github/workflows/jobs/build-nginx
-        with:
-          dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
-          dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
-
-  deploy-demo:
-    needs: [ build-nginx, provision-demo-server ]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: Copy SSH key
-        run: |
-          echo "${{ secrets.SSH_KEY }}" >> ./id_rsa
-          chmod 600 id_rsa
-      - name: Deploy app
-        run: |
-          SSH_CONNECTION_DEMO=root@${{ needs.provision-demo-server.outputs.demo_server_ip }}
-          scp -C -o StrictHostKeyChecking=no -i ./id_rsa ./deployment/bin/deploy.sh $SSH_CONNECTION_DEMO:/home/devops/deploy.sh
-          scp -C -o StrictHostKeyChecking=no -i ./id_rsa ./docker-compose.prod.yml $SSH_CONNECTION_DEMO:/usr/src/docker-compose.prod.yml
-          scp -C -o StrictHostKeyChecking=no -i ./id_rsa ./.env.prod.template $SSH_CONNECTION_DEMO:/usr/src/.env
-          ssh -tt -o StrictHostKeyChecking=no -i ./id_rsa $SSH_CONNECTION_DEMO "chown devops:devops /usr/src/docker-compose.prod.yml"
-          ssh -tt -o StrictHostKeyChecking=no -i ./id_rsa $SSH_CONNECTION_DEMO "chown devops:devops /usr/src/.env"
-          ssh -tt -o StrictHostKeyChecking=no -i ./id_rsa $SSH_CONNECTION_DEMO "
-            sed -i "/IMAGE_TAG/c\IMAGE_TAG=${{ github.sha }}-demo" /usr/src/.env
-            sed -i "/COMPOSE_PROJECT_NAME/c\COMPOSE_PROJECT_NAME=posts" /usr/src/.env
-
-            sed -i "/DOCKERHUB_USERNAME/c\DOCKERHUB_USERNAME=${{ secrets.DOCKERHUB_USERNAME }}" /usr/src/.env
-            sed -i "/DOCKERHUB_PASSWORD/c\DOCKERHUB_PASSWORD=${{ secrets.DOCKERHUB_TOKEN }}" /usr/src/.env
-
-            sed -i "/DB_PASSWORD/c\DB_PASSWORD=${{ secrets.DB_PASSWORD }}" /usr/src/.env
-            sed -i "/DB_USERNAME/c\DB_USERNAME=${{ secrets.DB_USERNAME }}" /usr/src/.env
-            sed -i "/AWS_ACCESS_KEY_ID/c\AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}" /usr/src/.env
-            sed -i "/AWS_SECRET_ACCESS_KEY/c\AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}" /usr/src/.env
-            sed -i "/AWS_DEFAULT_REGION/c\AWS_DEFAULT_REGION=${{ secrets.AWS_DEFAULT_REGION }}" /usr/src/.env
-            sed -i "/AWS_BUCKET/c\AWS_BUCKET=${{ secrets.AWS_BUCKET }}-demo" /usr/src/.env
-            sed -i "/AWS_ENDPOINT/c\AWS_ENDPOINT=${{ secrets.AWS_ENDPOINT }}" /usr/src/.env
-            sed -i "/APP_KEY/c\APP_KEY=${{ secrets.APP_KEY }}" /usr/src/.env
-            sed -i "/APP_URL/c\APP_URL=${{ needs.provision-demo-server.outputs.demo_server_ip }}" /usr/src/.env
-            sed -i "/BACKUP_NAME/c\BACKUP_NAME=${{ secrets.BACKUP_NAME }}_demo" /usr/src/.env"
-          ssh -tt -o StrictHostKeyChecking=no -i ./id_rsa $SSH_CONNECTION_DEMO "chmod +x /home/devops/deploy.sh && /home/devops/deploy.sh"
+          docker-compose -f docker-compose.ci.yml up -d
+          docker-compose -f docker-compose.ci.yml exec -T app php artisan config:clear
+          docker-compose -f docker-compose.ci.yml exec -T app cp .env.example .env
+          docker-compose -f docker-compose.ci.yml exec -T app php artisan test
+          docker-compose -f docker-compose.ci.yml down
