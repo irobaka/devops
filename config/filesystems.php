@@ -36,7 +36,7 @@ return [
             'throw' => false,
         ],
 
-        'public' => [
+        'local_public' => [
             'driver' => 'local',
             'root' => storage_path('app/public'),
             'url' => env('APP_URL').'/storage',
@@ -56,6 +56,29 @@ return [
             'throw' => false,
         ],
 
+        'public' => [
+            'driver' => 's3',
+            'key' => env('MINIO_ACCESS_KEY_ID'),
+            'secret' => env('MINIO_SECRET_ACCESS_KEY'),
+            'region' => env('MINIO_DEFAULT_REGION'),
+            'bucket' => 'public',
+            'url' => env('MINIO_URL'),
+            'endpoint' => env('MINIO_URL_ENDPOINT'),
+            'use_path_style_endpoint' => env('MINIO_USE_PATH_STYLE_ENDPOINT', true),
+            'throw' => true,
+        ],
+
+        'uploads' => [
+            'driver' => 's3',
+            'key' => env('MINIO_ACCESS_KEY_ID'),
+            'secret' => env('MINIO_SECRET_ACCESS_KEY'),
+            'region' => env('MINIO_DEFAULT_REGION'),
+            'bucket' => 'uploads',
+            'url' => env('MINIO_URL'),
+            'endpoint' => env('MINIO_URL_ENDPOINT'),
+            'use_path_style_endpoint' => env('MINIO_USE_PATH_STYLE_ENDPOINT', true),
+            'throw' => true,
+        ],
     ],
 
     /*

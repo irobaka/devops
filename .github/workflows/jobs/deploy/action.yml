@@ -43,6 +43,12 @@ inputs:
   dockerhub-token:
     description: 'DockerHub access token'
     required: true
+  minio-access-key:
+    description: 'MinIO access key'
+    required: true
+  minio-secret-access-key:
+    description: 'MinIO secret access key'
+    required: true
 
 runs:
   using: "composite"
@@ -71,6 +77,9 @@ runs:
           sed -i "/AWS_BUCKET/c\AWS_BUCKET=${{ inputs.aws-bucket }}" /usr/src/.env
           sed -i "/AWS_DEFAULT_REGION/c\AWS_DEFAULT_REGION=${{ inputs.aws-default-region }}" /usr/src/.env
           sed -i "/AWS_ENDPOINT/c\AWS_ENDPOINT=${{ inputs.aws-endpoint }}" /usr/src/.env
+
+          sed -i "/MINIO_ACCESS_KEY_ID/c\MINIO_ACCESS_KEY_ID=${{ inputs.minio-access-key }}" /usr/src/.env
+          sed -i "/MINIO_SECRET_ACCESS_KEY/c\MINIO_SECRET_ACCESS_KEY=${{ inputs.minio-secret-access-key }}" /usr/src/.env
 
           sed -i "/DB_PASSWORD/c\DB_PASSWORD=${{ inputs.db-password }}" /usr/src/.env
           sed -i "/DB_USERNAME/c\DB_USERNAME=${{ inputs.db-username }}" /usr/src/.env

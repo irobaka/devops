@@ -1,6 +1,7 @@
 volumes:
     devops_redis:
     devops_postgres:
+    minio:
 
 services:
     app:
@@ -33,6 +34,8 @@ services:
                 condition: service_healthy
             update:
                 condition: service_started
+            minio:
+                condition: service_healthy
         extra_hosts:
             - "host.docker.internal:host-gateway"
 
@@ -79,6 +82,8 @@ services:
                 condition: service_healthy
             update:
                 condition: service_started
+            minio:
+                condition: service_healthy
         extra_hosts:
             - "host.docker.internal:host-gateway"
 
@@ -106,6 +111,8 @@ services:
                 condition: service_healthy
             update:
                 condition: service_started
+            minio:
+                condition: service_healthy
         extra_hosts:
             - "host.docker.internal:host-gateway"
 
@@ -179,3 +186,21 @@ services:
         depends_on:
             app:
                 condition: service_started
+
+    minio:
+        image: bitnami/minio:latest
+        restart: unless-stopped
+        volumes:
+            -   minio:/bitnami/minio/data
+        ports:
+            - "9000:9000"
+            - "9001:9001"
+        environment:
+            MINIO_ROOT_USER: ${MINIO_ACCESS_KEY_ID:-postgres}
+            MINIO_ROOT_PASSWORD: ${MINIO_SECRET_ACCESS_KEY:-postgres}
+            MINIO_DEFAULT_BUCKETS: uploads,public
+        healthcheck:
+            test: [ "CMD", "mc", "ready", "local" ]
+            interval: 10s
+            timeout: 5s
+            retries: 5

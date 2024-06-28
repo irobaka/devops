@@ -2,6 +2,7 @@ volumes:
   storage:
   redis:
   postgres:
+  minio:
 
 services:
   app:
@@ -17,6 +18,8 @@ services:
         condition: service_healthy
       update:
         condition: service_started
+      minio:
+        condition: service_healthy
 
   scheduler:
     image: irobaka/devops-scheduler:${IMAGE_TAG}
@@ -31,6 +34,8 @@ services:
         condition: service_healthy
       update:
         condition: service_started
+      minio:
+        condition: service_healthy
 
   worker:
     image: irobaka/devops-worker:${IMAGE_TAG}
@@ -45,6 +50,8 @@ services:
         condition: service_healthy
       update:
         condition: service_started
+      minio:
+        condition: service_healthy
 
   update:
     image: irobaka/devops-app:${IMAGE_TAG}
@@ -89,6 +96,24 @@ services:
       - postgres:/var/lib/postgresql/data
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  minio:
+    image: bitnami/minio:latest
+    restart: unless-stopped
+    volumes:
+      - minio:/bitnami/minio/data
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY_ID}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_ACCESS_KEY}
+      MINIO_DEFAULT_BUCKETS: uploads,public
+    healthcheck:
+      test: [ "CMD", "mc", "ready", "local" ]
       interval: 10s
       timeout: 5s
       retries: 5
