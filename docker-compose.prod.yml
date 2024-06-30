@@ -71,15 +71,11 @@ services:
       - MINIO_ACCESS_KEY_ID=${MINIO_ACCESS_KEY_ID}
       - MINIO_SECRET_ACCESS_KEY=${MINIO_SECRET_ACCESS_KEY}
     depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-      update:
-        condition: service_started
-      minio:
-        condition: service_healthy
-
+      - postgres
+      - redis
+      - update
+      - minio
+      -
   scheduler:
     image: irobaka/devops-scheduler:${IMAGE_TAG}
     deploy:
@@ -140,14 +136,10 @@ services:
       - MINIO_ACCESS_KEY_ID=${MINIO_ACCESS_KEY_ID}
       - MINIO_SECRET_ACCESS_KEY=${MINIO_SECRET_ACCESS_KEY}
     depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-      update:
-        condition: service_started
-      minio:
-        condition: service_healthy
+      - postgres
+      - redis
+      - update
+      - minio
 
   worker:
     image: irobaka/devops-worker:${IMAGE_TAG}
@@ -214,14 +206,10 @@ services:
       - MINIO_ACCESS_KEY_ID=${MINIO_ACCESS_KEY_ID}
       - MINIO_SECRET_ACCESS_KEY=${MINIO_SECRET_ACCESS_KEY}
     depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-      update:
-        condition: service_started
-      minio:
-        condition: service_healthy
+      - postgres
+      - redis
+      - update
+      - minio
 
   update:
     image: irobaka/devops-app:${IMAGE_TAG}
@@ -263,8 +251,7 @@ services:
       - MINIO_ACCESS_KEY_ID=${MINIO_ACCESS_KEY_ID}
       - MINIO_SECRET_ACCESS_KEY=${MINIO_SECRET_ACCESS_KEY}
     depends_on:
-      postgres:
-        condition: service_healthy
+      - postgres
 
   nginx:
     image: irobaka/devops-nginx:${IMAGE_TAG}
@@ -299,8 +286,7 @@ services:
     ports:
       - "80:80"
     depends_on:
-      app:
-        condition: service_started
+      - app
 
   redis:
     image: redis:7.2.4-alpine
