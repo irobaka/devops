@@ -237,6 +237,7 @@ services:
       placement:
         constraints:
           - "node.labels.db!=true"
+      mode: replicated-job
     environment:
       APP_NAME=devops
       APP_ENV=production
