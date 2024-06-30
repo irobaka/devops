@@ -75,7 +75,7 @@ services:
       - redis
       - update
       - minio
-      -
+
   scheduler:
     image: irobaka/devops-scheduler:${IMAGE_TAG}
     deploy:
@@ -293,7 +293,7 @@ services:
     deploy:
       placement:
         constraints:
-          - "node.labels.db=true"
+          - "node.labels.db==true"
       restart_policy:
         condition: any
         delay: 5s
@@ -325,7 +325,7 @@ services:
     deploy:
       placement:
         constraints:
-          - "node.labels.db=true"
+          - "node.labels.db==true"
       restart_policy:
         condition: any
         delay: 5s
@@ -362,7 +362,7 @@ services:
     deploy:
       placement:
         constraints:
-          - "node.labels.minio=true"
+          - "node.labels.minio==true"
       restart_policy:
         condition: any
         delay: 5s
