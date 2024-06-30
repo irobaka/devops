@@ -9,4 +9,5 @@ Route::controller(PostsController::class)->group(function () {
     Route::post('/', 'store')->name('posts.store');
     Route::post('publish/{post}', 'publish')->name('posts.publish');
     Route::get('post/{post}', 'show')->name('posts.show');
+    Route::get('health-check', fn() => response('', 200));
 });
