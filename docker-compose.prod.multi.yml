@@ -373,13 +373,13 @@ services:
         failure_action: rollback
         monitor: 30s
         max_failure_ratio: 0
-        order: stop-first
+        order: start-first
       rollback_config:
         parallelism: 1
         failure_action: rollback
         monitor: 30s
         max_failure_ratio: 0
-        order: stop-first
+        order: start-first
     healthcheck:
       test: [ "CMD", "mc", "ready", "local" ]
       interval: 30s
