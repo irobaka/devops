@@ -81,7 +81,7 @@ COPY ../deployment/config/supervisor/supervisord.conf /etc/supervisor/conf.d/sup
 CMD ["/bin/sh", "/usr/src/worker-development.sh"]
 
 FROM dev as dev_scheduler
-CMD ["/bin/sh", "/usr/src/scheduler.sh"]
+CMD ["/bin/sh", "/usr/src/scheduler-development.sh"]
 
 FROM base as prod_worker
 CMD ["/bin/sh", "-c", "/usr/src/worker.sh"]
