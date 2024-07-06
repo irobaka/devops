@@ -9,9 +9,6 @@ services:
     command: sh -c "/usr/src/wait-for-it.sh postgres:5432 -t 60 && /usr/src/wait-for-it.sh redis:6379 -t 60 && php-fpm"
     deploy:
       replicas: 2
-      placement:
-        constraints:
-          - "node.labels.db!=true"
       restart_policy:
         condition: any
         delay: 5s
@@ -80,9 +77,6 @@ services:
     command: sh -c "/usr/src/wait-for-it.sh postgres:5432 -t 60 && /usr/src/wait-for-it.sh redis:6379 -t 60 && /usr/src/scheduler.sh"
     deploy:
       replicas: 1
-      placement:
-        constraints:
-          - "node.labels.db!=true"
       restart_policy:
         condition: any
         delay: 60s
@@ -146,9 +140,6 @@ services:
     command: sh -c "/usr/src/wait-for-it.sh postgres:5432 -t 60 && /usr/src/wait-for-it.sh redis:6379 -t 60 && /usr/src/worker.sh"
     deploy:
       replicas: 2
-      placement:
-        constraints:
-          - "node.labels.db!=true"
       restart_policy:
         condition: any
         delay: 5s
@@ -257,9 +248,6 @@ services:
     command: sh -c "/usr/src/wait-for-it.sh app:9000 -t 90 && nginx -g \"daemon off;\""
     deploy:
       replicas: 2
-      placement:
-        constraints:
-          - "node.labels.db!=true"
       restart_policy:
         condition: any
         delay: 10s
@@ -289,9 +277,6 @@ services:
   redis:
     image: redis:7.2.4-alpine
     deploy:
-      placement:
-        constraints:
-          - "node.labels.db==true"
       restart_policy:
         condition: any
         delay: 5s
@@ -319,9 +304,6 @@ services:
   postgres:
     image: irobaka/devops-postgres:${IMAGE_TAG}
     deploy:
-      placement:
-        constraints:
-          - "node.labels.db==true"
       restart_policy:
         condition: any
         delay: 5s
@@ -354,9 +336,6 @@ services:
   minio:
     image: bitnami/minio:latest
     deploy:
-      placement:
-        constraints:
-          - "node.labels.minio==true"
       restart_policy:
         condition: any
         delay: 5s
