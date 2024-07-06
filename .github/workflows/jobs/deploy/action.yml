@@ -43,6 +43,15 @@ inputs:
   dockerhub-token:
     description: 'DockerHub access token'
     required: true
+  minio-access-key:
+    description: 'MinIO access key'
+    required: true
+  minio-secret-access-key:
+    description: 'MinIO secret access key'
+    required: true
+  docker-compose-filename:
+    description: 'Docker compose filename'
+    required: true
 
 runs:
   using: "composite"
@@ -53,9 +62,9 @@ runs:
       shell: bash
     - run: |
         scp -C -o StrictHostKeyChecking=no -i ./id_rsa ./deployment/bin/deploy.sh ${{ inputs.ssh-connection }}:/home/devops/deploy.sh
-        scp -C -o StrictHostKeyChecking=no -i ./id_rsa ./docker-compose.prod.yml ${{ inputs.ssh-connection }}:/usr/src/docker-compose.prod.yml
+        scp -C -o StrictHostKeyChecking=no -i ./id_rsa ./${{ inputs.docker-compose-filename }} ${{ inputs.ssh-connection }}:/usr/src/docker-compose.yml
         scp -C -o StrictHostKeyChecking=no -i ./id_rsa ./.env.prod.template ${{ inputs.ssh-connection }}:/usr/src/.env
-        ssh -tt -o StrictHostKeyChecking=no -i ./id_rsa ${{ inputs.ssh-connection }} "chown devops:devops /usr/src/docker-compose.prod.yml"
+        ssh -tt -o StrictHostKeyChecking=no -i ./id_rsa ${{ inputs.ssh-connection }} "chown devops:devops /usr/src/docker-compose.yml"
         ssh -tt -o StrictHostKeyChecking=no -i ./id_rsa ${{ inputs.ssh-connection }} "chown devops:devops /usr/src/.env"
         ssh -tt -o StrictHostKeyChecking=no -i ./id_rsa ${{ inputs.ssh-connection }} "chmod +x /home/devops/deploy.sh"
         ssh -tt -o StrictHostKeyChecking=no -i ./id_rsa ${{ inputs.ssh-connection }} "
@@ -71,6 +80,9 @@ runs:
           sed -i "/AWS_BUCKET/c\AWS_BUCKET=${{ inputs.aws-bucket }}" /usr/src/.env
           sed -i "/AWS_DEFAULT_REGION/c\AWS_DEFAULT_REGION=${{ inputs.aws-default-region }}" /usr/src/.env
           sed -i "/AWS_ENDPOINT/c\AWS_ENDPOINT=${{ inputs.aws-endpoint }}" /usr/src/.env
+
+          sed -i "/MINIO_ACCESS_KEY_ID/c\MINIO_ACCESS_KEY_ID=${{ inputs.minio-access-key }}" /usr/src/.env
+          sed -i "/MINIO_SECRET_ACCESS_KEY/c\MINIO_SECRET_ACCESS_KEY=${{ inputs.minio-secret-access-key }}" /usr/src/.env
 
           sed -i "/DB_PASSWORD/c\DB_PASSWORD=${{ inputs.db-password }}" /usr/src/.env
           sed -i "/DB_USERNAME/c\DB_USERNAME=${{ inputs.db-username }}" /usr/src/.env

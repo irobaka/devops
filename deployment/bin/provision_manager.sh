@@ -3,6 +3,9 @@
 set -e
 
 PUBLIC_SSH_KEY=$1
+DOCKERHUB_USERNAME=$2
+DOCKERHUB_TOKEN=$3
+SERVER_IP=$4
 
 sudo apt-get update
 sudo apt-get install -y ca-certificates curl
@@ -40,4 +43,12 @@ fi
 
 sudo systemctl enable docker.service
 sudo systemctl enable containerd.service
+
+docker login -u "$DOCKERHUB_USERNAME" -p "$DOCKERHUB_TOKEN"
+
+ufw allow 2377 && ufw allow 7946 && ufw allow 4789
+
+docker swarm init --advertise-addr "$SERVER_IP"
+
+
 

@@ -18,7 +18,8 @@ RUN apt-get update && apt-get install -y \
     supervisor \
     libssl-dev \
     postgresql-client \
-    s3cmd
+    s3cmd \
+    netcat-openbsd
 
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 
@@ -42,6 +43,7 @@ COPY ../composer*.json /usr/src/
 COPY ../deployment/config/php-fpm/php.ini /usr/local/etc/php/conf.d/php.ini
 COPY ../deployment/config/php-fpm/www.conf /usr/local/etc/php-fpm.d/www.conf
 COPY ../deployment/bin/update.sh /usr/src/update.sh
+COPY ../deployment/bin/update-for-development.sh /usr/src/update-for-development.sh
 
 RUN composer install --no-scripts
 
@@ -76,13 +78,12 @@ COPY --from=assets /usr/src/public/build ./public/build
 
 FROM dev as dev_worker
 COPY ../deployment/config/supervisor/supervisord.conf /etc/supervisor/conf.d/supervisor.conf
-CMD ["/bin/sh", "/usr/src/worker.sh"]
+CMD ["/bin/sh", "/usr/src/worker-development.sh"]
 
 FROM dev as dev_scheduler
-CMD ["/bin/sh", "/usr/src/scheduler.sh"]
+CMD ["/bin/sh", "/usr/src/scheduler-development.sh"]
 
 FROM base as prod_worker
-COPY ../deployment/config/supervisor/supervisord.conf /etc/supervisor/conf.d/supervisor.conf
 CMD ["/bin/sh", "-c", "/usr/src/worker.sh"]
 
 FROM base as prod_scheduler

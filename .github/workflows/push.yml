@@ -97,6 +97,9 @@ jobs:
           backup-name: ${{ secrets.BACKUP_NAME }}
           dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
           dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
+          minio-access-key: ${{ secrets.MINIO_ACCESS_KEY_ID }}
+          minio-secret-access-key: ${{ secrets.MINIO_SECRET_ACCESS_KEY }}
+          docker-compose-filename: ${{ secrets.DOCKER_COMPOSE_FILENAME_PROD }}
 
   deploy-staging:
     needs: [ build-nginx ]
@@ -120,3 +123,6 @@ jobs:
           backup-name: ${{ secrets.BACKUP_NAME }}_stage
           dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
           dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
+          minio-access-key: ${{ secrets.MINIO_ACCESS_KEY_ID }}
+          minio-secret-access-key: ${{ secrets.MINIO_SECRET_ACCESS_KEY }}
+          docker-compose-filename: docker-compose.stage.yml

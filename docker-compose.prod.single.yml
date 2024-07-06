@@ -1,0 +1,368 @@
+volumes:
+  redis:
+  postgres:
+  minio:
+
+services:
+  app:
+    image: irobaka/devops-app:${IMAGE_TAG}
+    command: sh -c "/usr/src/wait-for-it.sh postgres:5432 -t 60 && /usr/src/wait-for-it.sh redis:6379 -t 60 && php-fpm"
+    deploy:
+      replicas: 2
+      restart_policy:
+        condition: any
+        delay: 5s
+        max_attempts: 3
+        window: 40s
+      update_config:
+        parallelism: 1
+        delay: 10s
+        failure_action: pause
+        monitor: 20s
+        order: stop-first
+      rollback_config:
+        parallelism: 1
+        delay: 10s
+        failure_action: pause
+        monitor: 20s
+        order: stop-first
+    healthcheck:
+      test: [ "CMD", "nc", "-zv", "localhost", "9000" ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
+    environment:
+      - APP_NAME=devops
+      - APP_ENV=production
+      - APP_KEY=${APP_KEY}
+      - APP_DEBUG=false
+      - APP_URL=http://localhost
+      - BACKUP_NAME=${BACKUP_NAME}
+      - CACHE_STORE=redis
+      - SESSION_DRIVER=redis
+      - FILESYSTEM_DISK=uploads
+      - LOG_CHANNEL=stack
+      - LOG_LEVEL=error
+      - DB_CONNECTION=pgsql
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_DATABASE=devops
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - QUEUE_CONNECTION=redis
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - MAIL_MAILER=log
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION}
+      - AWS_BUCKET=${AWS_BUCKET}
+      - AWS_ENDPOINT=${AWS_ENDPOINT}
+      - AWS_URL=${AWS_URL}
+      - AWS_USE_PATH_STYLE_ENDPOINT=${AWS_USE_PATH_STYLE_ENDPOINT}
+      - MINIO_DEFAULT_REGION=CRA1
+      - MINIO_URL=http://minio:9000
+      - MINIO_URL_ENDPOINT=http://minio:9000
+      - MINIO_ACCESS_KEY_ID=${MINIO_ACCESS_KEY_ID}
+      - MINIO_SECRET_ACCESS_KEY=${MINIO_SECRET_ACCESS_KEY}
+    depends_on:
+      - postgres
+      - redis
+      - update
+      - minio
+
+  scheduler:
+    image: irobaka/devops-scheduler:${IMAGE_TAG}
+    command: sh -c "/usr/src/wait-for-it.sh postgres:5432 -t 60 && /usr/src/wait-for-it.sh redis:6379 -t 60 && /usr/src/scheduler.sh"
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+        delay: 60s
+        window: 40s
+      update_config:
+        parallelism: 1
+        delay: 10s
+        failure_action: pause
+        monitor: 20s
+        max_failure_ratio: 0
+        order: stop-first
+      rollback_config:
+        parallelism: 1
+        delay: 10s
+        failure_action: pause
+        monitor: 20s
+        max_failure_ratio: 0
+        order: stop-first
+    environment:
+      - APP_NAME=devops
+      - APP_ENV=production
+      - APP_KEY=${APP_KEY}
+      - APP_DEBUG=false
+      - APP_URL=http://localhost
+      - BACKUP_NAME=${BACKUP_NAME}
+      - CACHE_STORE=redis
+      - SESSION_DRIVER=redis
+      - FILESYSTEM_DISK=uploads
+      - LOG_CHANNEL=stack
+      - LOG_LEVEL=error
+      - DB_CONNECTION=pgsql
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_DATABASE=devops
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - QUEUE_CONNECTION=redis
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - MAIL_MAILER=log
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION}
+      - AWS_BUCKET=${AWS_BUCKET}
+      - AWS_ENDPOINT=${AWS_ENDPOINT}
+      - AWS_URL=${AWS_URL}
+      - AWS_USE_PATH_STYLE_ENDPOINT=${AWS_USE_PATH_STYLE_ENDPOINT}
+      - MINIO_DEFAULT_REGION=CRA1
+      - MINIO_URL=http://minio:9000
+      - MINIO_URL_ENDPOINT=http://minio:9000
+      - MINIO_ACCESS_KEY_ID=${MINIO_ACCESS_KEY_ID}
+      - MINIO_SECRET_ACCESS_KEY=${MINIO_SECRET_ACCESS_KEY}
+    depends_on:
+      - postgres
+      - redis
+      - update
+      - minio
+
+  worker:
+    image: irobaka/devops-worker:${IMAGE_TAG}
+    command: sh -c "/usr/src/wait-for-it.sh postgres:5432 -t 60 && /usr/src/wait-for-it.sh redis:6379 -t 60 && /usr/src/worker.sh"
+    deploy:
+      replicas: 2
+      restart_policy:
+        condition: any
+        delay: 5s
+        max_attempts: 3
+        window: 40s
+      update_config:
+        parallelism: 1
+        delay: 10s
+        monitor: 20s
+        order: stop-first
+      rollback_config:
+        parallelism: 1
+        delay: 10s
+        monitor: 20s
+        order: stop-first
+    healthcheck:
+      test: [ "CMD", "php", "/usr/src/artisan", "queue:monitor", "default" ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
+    environment:
+      - APP_NAME=devops
+      - APP_ENV=production
+      - APP_KEY=${APP_KEY}
+      - APP_DEBUG=false
+      - APP_URL=http://localhost
+      - BACKUP_NAME=${BACKUP_NAME}
+      - CACHE_STORE=redis
+      - SESSION_DRIVER=redis
+      - FILESYSTEM_DISK=uploads
+      - LOG_CHANNEL=stack
+      - LOG_LEVEL=error
+      - DB_CONNECTION=pgsql
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_DATABASE=devops
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - QUEUE_CONNECTION=redis
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - MAIL_MAILER=log
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION}
+      - AWS_BUCKET=${AWS_BUCKET}
+      - AWS_ENDPOINT=${AWS_ENDPOINT}
+      - AWS_URL=${AWS_URL}
+      - AWS_USE_PATH_STYLE_ENDPOINT=${AWS_USE_PATH_STYLE_ENDPOINT}
+      - MINIO_DEFAULT_REGION=CRA1
+      - MINIO_URL=http://minio:9000
+      - MINIO_URL_ENDPOINT=http://minio:9000
+      - MINIO_ACCESS_KEY_ID=${MINIO_ACCESS_KEY_ID}
+      - MINIO_SECRET_ACCESS_KEY=${MINIO_SECRET_ACCESS_KEY}
+    depends_on:
+      - postgres
+      - redis
+      - update
+      - minio
+
+  update:
+    image: irobaka/devops-app:${IMAGE_TAG}
+    command: sh -c "/usr/src/wait-for-it.sh postgres:5432 -t 60 && /usr/src/wait-for-it.sh redis:6379 -t 60 && /usr/src/update.sh"
+    deploy:
+      mode: replicated-job
+    environment:
+      - APP_NAME=devops
+      - APP_ENV=production
+      - APP_KEY=${APP_KEY}
+      - APP_DEBUG=false
+      - APP_URL=http://localhost
+      - BACKUP_NAME=${BACKUP_NAME}
+      - CACHE_STORE=redis
+      - SESSION_DRIVER=redis
+      - FILESYSTEM_DISK=uploads
+      - LOG_CHANNEL=stack
+      - LOG_LEVEL=error
+      - DB_CONNECTION=pgsql
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_DATABASE=devops
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - QUEUE_CONNECTION=redis
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - MAIL_MAILER=log
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION}
+      - AWS_BUCKET=${AWS_BUCKET}
+      - AWS_ENDPOINT=${AWS_ENDPOINT}
+      - AWS_URL=${AWS_URL}
+      - AWS_USE_PATH_STYLE_ENDPOINT=${AWS_USE_PATH_STYLE_ENDPOINT}
+      - MINIO_DEFAULT_REGION=CRA1
+      - MINIO_URL=http://minio:9000
+      - MINIO_URL_ENDPOINT=http://minio:9000
+      - MINIO_ACCESS_KEY_ID=${MINIO_ACCESS_KEY_ID}
+      - MINIO_SECRET_ACCESS_KEY=${MINIO_SECRET_ACCESS_KEY}
+    depends_on:
+      - postgres
+
+  nginx:
+    image: irobaka/devops-nginx:${IMAGE_TAG}
+    command: sh -c "/usr/src/wait-for-it.sh app:9000 -t 90 && nginx -g \"daemon off;\""
+    deploy:
+      replicas: 2
+      restart_policy:
+        condition: any
+        delay: 10s
+        max_attempts: 5
+        window: 1m
+      update_config:
+        parallelism: 1
+        delay: 10s
+        monitor: 20s
+        order: stop-first
+      rollback_config:
+        parallelism: 1
+        delay: 10s
+        monitor: 20s
+        order: stop-first
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost/health-check" ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 1m
+    ports:
+      - "80:80"
+    depends_on:
+      - app
+
+  redis:
+    image: redis:7.2.4-alpine
+    deploy:
+      restart_policy:
+        condition: any
+        delay: 5s
+        max_attempts: 3
+        window: 30s
+      update_config:
+        parallelism: 1
+        failure_action: rollback
+        monitor: 30s
+        order: start-first
+      rollback_config:
+        parallelism: 1
+        failure_action: rollback
+        monitor: 30s
+        order: stop-first
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    volumes:
+      - redis:/data
+
+  postgres:
+    image: irobaka/devops-postgres:${IMAGE_TAG}
+    deploy:
+      restart_policy:
+        condition: any
+        delay: 5s
+        max_attempts: 3
+        window: 30s
+      update_config:
+        parallelism: 1
+        failure_action: rollback
+        monitor: 30s
+        order: stop-first
+      rollback_config:
+        parallelism: 1
+        failure_action: rollback
+        monitor: 30s
+        order: stop-first
+    healthcheck:
+      test: [ "CMD", "pg_isready" ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    environment:
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_USER: ${DB_USERNAME}
+      PGUSER: ${DB_USERNAME}
+      POSTGRES_DB: ${DB_DATABASE}
+    volumes:
+      - postgres:/var/lib/postgresql/data
+
+  minio:
+    image: bitnami/minio:latest
+    deploy:
+      restart_policy:
+        condition: any
+        delay: 5s
+        max_attempts: 3
+        window: 30s
+      update_config:
+        parallelism: 1
+        failure_action: rollback
+        monitor: 30s
+        order: start-first
+      rollback_config:
+        parallelism: 1
+        failure_action: rollback
+        monitor: 30s
+        order: start-first
+    healthcheck:
+      test: [ "CMD", "mc", "ready", "local" ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    volumes:
+      - minio:/bitnami/minio/data
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY_ID}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_ACCESS_KEY}
+      MINIO_DEFAULT_BUCKETS: uploads,public
