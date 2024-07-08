@@ -88,3 +88,6 @@ CMD ["/bin/sh", "-c", "/usr/src/worker.sh"]
 
 FROM base as prod_scheduler
 CMD ["/bin/sh", "/usr/src/scheduler.sh"]
+
+FROM base as prod_health_check
+CMD ["/bin/sh", "/usr/src/health-check.sh"]

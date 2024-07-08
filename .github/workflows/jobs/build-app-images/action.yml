@@ -19,9 +19,11 @@ runs:
         docker build -t $APP_IMAGE --target=prod --build-arg user=devops --build-arg uid=1000 -f docker/Dockerfile.php .
         docker build -t $SCHEDULER_IMAGE --target=prod_scheduler --build-arg user=devops --build-arg uid=1000 -f docker/Dockerfile.php .
         docker build -t $WORKER_IMAGE --target=prod_worker --build-arg user=devops --build-arg uid=1000 -f docker/Dockerfile.php .
+        docker build -t $HEALTH_CHECK_IMAGE --target=prod_health_check --build-arg user=devops --build-arg uid=1000 -f docker/Dockerfile.php .
       shell: bash
     - run: |
         docker push $APP_IMAGE
         docker push $SCHEDULER_IMAGE
         docker push $WORKER_IMAGE
+        docker push $HEALTH_CHECK_IMAGE
       shell: bash

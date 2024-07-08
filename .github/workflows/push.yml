@@ -7,6 +7,7 @@ on:
 env:
   APP_IMAGE: irobaka/devops-app:${{ github.sha }}
   SCHEDULER_IMAGE: irobaka/devops-scheduler:${{ github.sha }}
+  HEALTH_CHECK_IMAGE: irobaka/devops-health-check:${{ github.sha }}
   WORKER_IMAGE: irobaka/devops-worker:${{ github.sha }}
   NGINX_IMAGE: irobaka/devops-nginx:${{ github.sha }}
   POSTGRES_IMAGE: irobaka/devops-postgres:${{ github.sha }}
