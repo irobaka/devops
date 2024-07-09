@@ -32,16 +32,16 @@ services:
       start_period: 40s
     environment:
       - APP_NAME=devops
-      - APP_ENV=production
+      - APP_ENV=staging
       - APP_KEY=${APP_KEY}
-      - APP_DEBUG=false
+      - APP_DEBUG=true
       - APP_URL=http://localhost
       - BACKUP_NAME=${BACKUP_NAME}
       - CACHE_STORE=redis
       - SESSION_DRIVER=redis
       - FILESYSTEM_DISK=uploads
       - LOG_CHANNEL=stack
-      - LOG_LEVEL=error
+      - LOG_LEVEL=info
       - DB_CONNECTION=pgsql
       - DB_HOST=postgres
       - DB_PORT=5432
@@ -64,6 +64,7 @@ services:
       - MINIO_URL_ENDPOINT=http://minio:9000
       - MINIO_ACCESS_KEY_ID=${MINIO_ACCESS_KEY_ID}
       - MINIO_SECRET_ACCESS_KEY=${MINIO_SECRET_ACCESS_KEY}
+      - ROLLBAR_TOKEN=${ROLLBAR_TOKEN}
     depends_on:
       - postgres
       - redis
@@ -93,16 +94,16 @@ services:
         order: stop-first
     environment:
       - APP_NAME=devops
-      - APP_ENV=production
+      - APP_ENV=staging
       - APP_KEY=${APP_KEY}
-      - APP_DEBUG=false
+      - APP_DEBUG=true
       - APP_URL=http://localhost
       - BACKUP_NAME=${BACKUP_NAME}
       - CACHE_STORE=redis
       - SESSION_DRIVER=redis
       - FILESYSTEM_DISK=uploads
       - LOG_CHANNEL=stack
-      - LOG_LEVEL=error
+      - LOG_LEVEL=info
       - DB_CONNECTION=pgsql
       - DB_HOST=postgres
       - DB_PORT=5432
@@ -125,6 +126,7 @@ services:
       - MINIO_URL_ENDPOINT=http://minio:9000
       - MINIO_ACCESS_KEY_ID=${MINIO_ACCESS_KEY_ID}
       - MINIO_SECRET_ACCESS_KEY=${MINIO_SECRET_ACCESS_KEY}
+      - ROLLBAR_TOKEN=${ROLLBAR_TOKEN}
     depends_on:
       - postgres
       - redis
@@ -154,16 +156,16 @@ services:
         order: stop-first
     environment:
       - APP_NAME=devops
-      - APP_ENV=production
+      - APP_ENV=staging
       - APP_KEY=${APP_KEY}
-      - APP_DEBUG=false
+      - APP_DEBUG=true
       - APP_URL=http://localhost
       - BACKUP_NAME=${BACKUP_NAME}
       - CACHE_STORE=redis
       - SESSION_DRIVER=redis
       - FILESYSTEM_DISK=uploads
       - LOG_CHANNEL=stack
-      - LOG_LEVEL=error
+      - LOG_LEVEL=info
       - DB_CONNECTION=pgsql
       - DB_HOST=postgres
       - DB_PORT=5432
@@ -186,6 +188,7 @@ services:
       - MINIO_URL_ENDPOINT=http://minio:9000
       - MINIO_ACCESS_KEY_ID=${MINIO_ACCESS_KEY_ID}
       - MINIO_SECRET_ACCESS_KEY=${MINIO_SECRET_ACCESS_KEY}
+      - ROLLBAR_TOKEN=${ROLLBAR_TOKEN}
     depends_on:
       - postgres
       - redis
@@ -220,16 +223,16 @@ services:
       start_period: 40s
     environment:
       - APP_NAME=devops
-      - APP_ENV=production
+      - APP_ENV=staging
       - APP_KEY=${APP_KEY}
-      - APP_DEBUG=false
+      - APP_DEBUG=true
       - APP_URL=http://localhost
       - BACKUP_NAME=${BACKUP_NAME}
       - CACHE_STORE=redis
       - SESSION_DRIVER=redis
       - FILESYSTEM_DISK=uploads
       - LOG_CHANNEL=stack
-      - LOG_LEVEL=error
+      - LOG_LEVEL=info
       - DB_CONNECTION=pgsql
       - DB_HOST=postgres
       - DB_PORT=5432
@@ -252,6 +255,7 @@ services:
       - MINIO_URL_ENDPOINT=http://minio:9000
       - MINIO_ACCESS_KEY_ID=${MINIO_ACCESS_KEY_ID}
       - MINIO_SECRET_ACCESS_KEY=${MINIO_SECRET_ACCESS_KEY}
+      - ROLLBAR_TOKEN=${ROLLBAR_TOKEN}
     depends_on:
       - postgres
       - redis
@@ -265,16 +269,16 @@ services:
       mode: replicated-job
     environment:
       - APP_NAME=devops
-      - APP_ENV=production
+      - APP_ENV=staging
       - APP_KEY=${APP_KEY}
-      - APP_DEBUG=false
+      - APP_DEBUG=true
       - APP_URL=http://localhost
       - BACKUP_NAME=${BACKUP_NAME}
       - CACHE_STORE=redis
       - SESSION_DRIVER=redis
       - FILESYSTEM_DISK=uploads
       - LOG_CHANNEL=stack
-      - LOG_LEVEL=error
+      - LOG_LEVEL=info
       - DB_CONNECTION=pgsql
       - DB_HOST=postgres
       - DB_PORT=5432
@@ -297,6 +301,7 @@ services:
       - MINIO_URL_ENDPOINT=http://minio:9000
       - MINIO_ACCESS_KEY_ID=${MINIO_ACCESS_KEY_ID}
       - MINIO_SECRET_ACCESS_KEY=${MINIO_SECRET_ACCESS_KEY}
+      - ROLLBAR_TOKEN=${ROLLBAR_TOKEN}
     depends_on:
       - postgres
 

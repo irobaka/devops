@@ -4,6 +4,13 @@ use Monolog\Handler\NullHandler;
 use Monolog\Handler\StreamHandler;
 use Monolog\Handler\SyslogUdpHandler;
 use Monolog\Processor\PsrLogMessageProcessor;
+use Rollbar\Laravel\MonologHandler;
+
+if (in_array(env('APP_ENV'), ['production', 'staging'])) {
+    $channels = ['daily', 'rollbar'];
+} else {
+    $channels = ['daily'];
+}
 
 return [
 
@@ -54,7 +61,7 @@ return [
 
         'stack' => [
             'driver' => 'stack',
-            'channels' => explode(',', env('LOG_STACK', 'single')),
+            'channels' => $channels,
             'ignore_exceptions' => false,
         ],
 
@@ -127,6 +134,15 @@ return [
             'path' => storage_path('logs/laravel.log'),
         ],
 
+        'rollbar' => [
+            'driver' => 'monolog',
+            'handler' => MonologHandler::class,
+            'access_token' => env('ROLLBAR_TOKEN'),
+            'level' => 'debug',
+            'person_fn' => 'Auth::user',
+            'capture_email' => true,
+            'capture_username' => true,
+        ]
     ],
 
 ];

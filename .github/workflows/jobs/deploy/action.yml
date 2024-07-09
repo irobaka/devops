@@ -52,6 +52,9 @@ inputs:
   docker-compose-filename:
     description: 'Docker compose filename'
     required: true
+  rollbar-token:
+    description: 'Rollbar token'
+    required: true
 
 runs:
   using: "composite"
@@ -89,5 +92,6 @@ runs:
 
           sed -i "/APP_KEY/c\APP_KEY=${{ inputs.app-key }}" /usr/src/.env
           sed -i "/BACKUP_NAME/c\BACKUP_NAME=${{ inputs.backup-name }}" /usr/src/.env"
+          sed -i "/ROLLBAR_TOKEN/c\ROLLBAR_TOKEN=${{ inputs.rollbar-token }}" /usr/src/.env"
         ssh -tt -o StrictHostKeyChecking=no -i ./id_rsa ${{ inputs.ssh-connection }} "/home/devops/deploy.sh"
       shell: bash
