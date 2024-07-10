@@ -6,7 +6,9 @@ use Monolog\Handler\SyslogUdpHandler;
 use Monolog\Processor\PsrLogMessageProcessor;
 use Rollbar\Laravel\MonologHandler;
 
-if (in_array(env('APP_ENV'), ['production', 'staging'])) {
+if (env('APP_ENV') === 'production') {
+    $channels = ['rollbar'];
+} elseif (env('APP_ENV') === 'staging') {
     $channels = ['daily', 'rollbar'];
 } else {
     $channels = ['daily'];
@@ -138,7 +140,7 @@ return [
             'driver' => 'monolog',
             'handler' => MonologHandler::class,
             'access_token' => env('ROLLBAR_TOKEN'),
-            'level' => 'debug',
+            'level' => 'warning',
             'person_fn' => 'Auth::user',
             'capture_email' => true,
             'capture_username' => true,
