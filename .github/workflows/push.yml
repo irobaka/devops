@@ -11,6 +11,8 @@ env:
   WORKER_IMAGE: irobaka/devops-worker:${{ github.sha }}
   NGINX_IMAGE: irobaka/devops-nginx:${{ github.sha }}
   POSTGRES_IMAGE: irobaka/devops-postgres:${{ github.sha }}
+  FLUENTBIT_IMAGE: irobaka/devops-fluentbit:${{ github.sha }}
+  LOKI_IMAGE: irobaka/devops-loki:${{ github.sha }}
   DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
   DB_USERNAME: ${{ secrets.DB_USERNAME }}
 
@@ -76,8 +78,28 @@ jobs:
           dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
           dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
 
+  build-fluentbit:
+    needs: [ analyze, test ]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./.github/workflows/jobs/build-fluentbit
+        with:
+          dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
+          dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
+
+  build-loki:
+    needs: [ analyze, test ]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./.github/workflows/jobs/build-loki
+        with:
+          dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
+          dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
+
   deploy-prod:
-    needs: [ build-nginx ]
+    needs: [ build-nginx, build-fluentbit, build-loki ]
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:

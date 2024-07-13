@@ -1,0 +1,21 @@
+name: 'Build fluentbit'
+description: 'Build fluentbit'
+inputs:
+  dockerhub-username:
+    description: 'DockerHub username'
+    required: true
+  dockerhub-token:
+    description: 'DockerHub access token'
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - uses: docker/login-action@v2
+      with:
+        username: ${{ inputs.dockerhub-username }}
+        password: ${{ inputs.dockerhub-token }}
+    - run: |
+        docker build -t $FLUENTBIT_IMAGE -f docker/Dockerfile.fluentbit .
+          docker push $FLUENTBIT_IMAGE
+      shell: bash

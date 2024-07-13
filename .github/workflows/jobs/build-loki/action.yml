@@ -1,0 +1,21 @@
+name: 'Build loki'
+description: 'Build loki'
+inputs:
+  dockerhub-username:
+    description: 'DockerHub username'
+    required: true
+  dockerhub-token:
+    description: 'DockerHub access token'
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - uses: docker/login-action@v2
+      with:
+        username: ${{ inputs.dockerhub-username }}
+        password: ${{ inputs.dockerhub-token }}
+    - run: |
+        docker build -t $LOKI_IMAGE -f docker/Dockerfile.loki .
+          docker push $LOKI_IMAGE
+      shell: bash

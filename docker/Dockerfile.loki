@@ -1,0 +1,5 @@
+FROM grafana/loki:2.7.5
+
+COPY ../deployment/config/loki/loki.conf /etc/loki/local-config.yaml
+
+USER 1000

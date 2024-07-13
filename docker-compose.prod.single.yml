@@ -2,10 +2,18 @@ volumes:
   redis:
   postgres:
   minio:
+  loki-data:
 
 services:
   app:
     image: irobaka/devops-app:${IMAGE_TAG}
+    labels:
+      service_name: "app"
+    logging:
+      driver: fluentd
+      options:
+        tag: "app"
+        labels: "service_name"
     command: sh -c "/usr/src/wait-for-it.sh postgres:5432 -t 60 && /usr/src/wait-for-it.sh redis:6379 -t 60 && php-fpm"
     deploy:
       replicas: 2
@@ -75,6 +83,13 @@ services:
 
   scheduler:
     image: irobaka/devops-scheduler:${IMAGE_TAG}
+    labels:
+      service_name: "scheduler"
+    logging:
+      driver: fluentd
+      options:
+        tag: "scheduler"
+        labels: "service_name"
     command: sh -c "/usr/src/wait-for-it.sh postgres:5432 -t 60 && /usr/src/wait-for-it.sh redis:6379 -t 60 && /usr/src/scheduler.sh"
     deploy:
       replicas: 1
@@ -139,6 +154,13 @@ services:
 
   health-check:
     image: irobaka/devops-health-check:${IMAGE_TAG}
+    labels:
+      service_name: "health-check"
+    logging:
+      driver: fluentd
+      options:
+        tag: "health-check"
+        labels: "service_name"
     command: sh -c "/usr/src/wait-for-it.sh postgres:5432 -t 60 && /usr/src/wait-for-it.sh redis:6379 -t 60 && /usr/src/health-check.sh"
     deploy:
       mode: global
@@ -201,6 +223,13 @@ services:
 
   worker:
     image: irobaka/devops-worker:${IMAGE_TAG}
+    labels:
+      service_name: "worker"
+    logging:
+      driver: fluentd
+      options:
+        tag: "worker"
+        labels: "service_name"
     command: sh -c "/usr/src/wait-for-it.sh postgres:5432 -t 60 && /usr/src/wait-for-it.sh redis:6379 -t 60 && /usr/src/worker.sh"
     deploy:
       replicas: 2
@@ -268,6 +297,13 @@ services:
 
   update:
     image: irobaka/devops-app:${IMAGE_TAG}
+    labels:
+      service_name: "update"
+    logging:
+      driver: fluentd
+      options:
+        tag: "update"
+        labels: "service_name"
     command: sh -c "/usr/src/wait-for-it.sh postgres:5432 -t 60 && /usr/src/wait-for-it.sh redis:6379 -t 60 && /usr/src/update.sh"
     deploy:
       mode: replicated-job
@@ -311,6 +347,13 @@ services:
 
   nginx:
     image: irobaka/devops-nginx:${IMAGE_TAG}
+    labels:
+      service_name: "nginx"
+    logging:
+      driver: fluentd
+      options:
+        tag: "nginx"
+        labels: "service_name"
     command: sh -c "/usr/src/wait-for-it.sh app:9000 -t 90 && nginx -g \"daemon off;\""
     deploy:
       replicas: 2
@@ -342,6 +385,13 @@ services:
 
   redis:
     image: redis:7.2.4-alpine
+    labels:
+      service_name: "redis"
+    logging:
+      driver: fluentd
+      options:
+        tag: "redis"
+        labels: "service_name"
     deploy:
       restart_policy:
         condition: any
@@ -369,6 +419,13 @@ services:
 
   postgres:
     image: irobaka/devops-postgres:${IMAGE_TAG}
+    labels:
+      service_name: "postgres"
+    logging:
+      driver: fluentd
+      options:
+        tag: "postgres"
+        labels: "service_name"
     deploy:
       restart_policy:
         condition: any
@@ -432,3 +489,23 @@ services:
       MINIO_ROOT_USER: ${MINIO_ACCESS_KEY_ID}
       MINIO_ROOT_PASSWORD: ${MINIO_SECRET_ACCESS_KEY}
       MINIO_DEFAULT_BUCKETS: uploads,public
+
+
+  fluentbit:
+    image: irobaka/devops-fluentbit:${IMAGE_TAG}
+    deploy:
+      mode: global
+    ports:
+      - "24224:24224"
+    environment:
+      - LOKI_URL=http://loki:3100/loki/api/v1/push
+
+  loki:
+    image: irobaka/devops-loki:${IMAGE_TAG}
+    volumes:
+      - loki-data:/loki
+
+  grafana:
+    image: grafana/grafana:9.5.6
+    ports:
+      - "3030:3000"
