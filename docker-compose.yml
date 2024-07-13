@@ -63,6 +63,7 @@ services:
 
     scheduler:
         restart: unless-stopped
+        command: sh -c "sleep 60 && /usr/src/scheduler.sh"
         build:
             context: .
             dockerfile: docker/Dockerfile.php

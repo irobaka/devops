@@ -15,7 +15,6 @@ RUN apt-get update && apt-get install -y \
     curl \
     zip \
     unzip \
-    supervisor \
     libssl-dev \
     postgresql-client \
     s3cmd \
@@ -77,11 +76,10 @@ FROM dev as prod
 COPY --from=assets /usr/src/public/build ./public/build
 
 FROM dev as dev_worker
-COPY ../deployment/config/supervisor/supervisord.conf /etc/supervisor/conf.d/supervisor.conf
 CMD ["/bin/sh", "/usr/src/worker.sh"]
 
 FROM dev as dev_scheduler
-CMD ["/bin/sh", "sleep 60 && /usr/src/scheduler.sh"]
+CMD ["/bin/sh", "/usr/src/scheduler.sh"]
 
 FROM base as prod_worker
 CMD ["/bin/sh", "-c", "/usr/src/worker.sh"]
