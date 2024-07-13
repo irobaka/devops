@@ -28,6 +28,7 @@ services:
             - ./phpstan.neon.dist:/usr/src/phpstan.neon.dist
             - ./phpunit.xml:/usr/src/phpunit.xml
             - ./public:/usr/src/public
+            - ./deployment/config/php-fpm/php-dev.ini:/usr/local/etc/php/conf.d/php.ini
         depends_on:
             postgres:
                 condition: service_healthy
@@ -54,6 +55,7 @@ services:
             - ./composer.json:/usr/src/composer.json
             - ./composer.lock:/usr/src/composer.lock
             - ./.env:/usr/src/.env
+            - ./deployment/bin/update.sh:/usr/src/update.sh
             - ./deployment/bin/update-for-development.sh:/usr/src/update-for-development.sh
         depends_on:
             postgres:
@@ -77,6 +79,10 @@ services:
             - ./storage:/usr/src/storage
             - ./tests:/usr/src/tests
             - ./.env:/usr/src/.env
+            - ./composer.json:/usr/src/composer.json
+            - ./composer.lock:/usr/src/composer.lock
+            - ./phpunit.xml:/usr/src/phpunit.xml
+            - ./scheduler.sh:/usr/src/scheduler.sh
         depends_on:
             postgres:
                 condition: service_healthy
@@ -107,6 +113,10 @@ services:
             - ./storage:/usr/src/storage
             - ./tests:/usr/src/tests
             - ./.env:/usr/src/.env
+            - ./composer.json:/usr/src/composer.json
+            - ./composer.lock:/usr/src/composer.lock
+            - ./phpunit.xml:/usr/src/phpunit.xml
+            - ./worker.sh:/usr/src/worker.sh
         depends_on:
             postgres:
                 condition: service_healthy
