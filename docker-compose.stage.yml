@@ -2,7 +2,8 @@ volumes:
   redis:
   postgres:
   minio:
-  loki-data:
+  loki:
+  grafana:
 
 services:
   app:
@@ -454,6 +455,13 @@ services:
 
   minio:
     image: bitnami/minio:latest
+    labels:
+      service_name: "minio"
+    logging:
+      driver: fluentd
+      options:
+        tag: "minio"
+        labels: "service_name"
     deploy:
       restart_policy:
         condition: any
@@ -498,9 +506,11 @@ services:
   loki:
     image: irobaka/devops-loki:${IMAGE_TAG}
     volumes:
-      - loki-data:/loki
+      - loki:/loki
 
   grafana:
-    image: grafana/grafana:9.5.6
+    image: grafana/grafana:11.1.0
     ports:
       - "3030:3000"
+    volumes:
+      - grafana:/var/lib/grafana

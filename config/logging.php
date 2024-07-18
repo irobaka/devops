@@ -12,7 +12,7 @@ if (env('APP_ENV') === 'production') {
 } elseif (env('APP_ENV') === 'staging') {
     $channels = ['daily', 'json', 'rollbar'];
 } else {
-    $channels = ['daily', 'stdout'];
+    $channels = ['daily', 'json'];
 }
 
 return [
