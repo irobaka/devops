@@ -79,7 +79,7 @@ FROM dev as dev_worker
 CMD ["/bin/sh", "/usr/src/worker.sh"]
 
 FROM dev as dev_scheduler
-CMD ["/bin/sh", "/usr/src/scheduler.sh"]
+CMD ["/bin/sh", "/usr/src/scheduler-development.sh"]
 
 FROM base as prod_worker
 CMD ["/bin/sh", "-c", "/usr/src/worker.sh"]
