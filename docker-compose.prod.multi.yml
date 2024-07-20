@@ -9,12 +9,12 @@ services:
   app:
     image: irobaka/devops-app:${IMAGE_TAG}
     labels:
-      service_name: "app"
+      sn: "app"
     logging:
       driver: fluentd
       options:
         tag: "app"
-        labels: "service_name"
+        labels: "sn"
     command: sh -c "/usr/src/wait-for-it.sh postgres:5432 -t 60 && /usr/src/wait-for-it.sh redis:6379 -t 60 && php-fpm"
     deploy:
       replicas: 4
@@ -88,12 +88,12 @@ services:
   scheduler:
     image: irobaka/devops-scheduler:${IMAGE_TAG}
     labels:
-      service_name: "scheduler"
+      sn: "scheduler"
     logging:
       driver: fluentd
       options:
         tag: "scheduler"
-        labels: "service_name"
+        labels: "sn"
     command: sh -c "/usr/src/wait-for-it.sh postgres:5432 -t 60 && /usr/src/wait-for-it.sh redis:6379 -t 60 && /usr/src/scheduler.sh"
     deploy:
       replicas: 1
@@ -160,12 +160,12 @@ services:
   health-check:
     image: irobaka/devops-health-check:${IMAGE_TAG}
     labels:
-      service_name: "health-check"
+      sn: "health-check"
     logging:
       driver: fluentd
       options:
         tag: "health-check"
-        labels: "service_name"
+        labels: "sn"
     command: sh -c "/usr/src/wait-for-it.sh postgres:5432 -t 60 && /usr/src/wait-for-it.sh redis:6379 -t 60 && /usr/src/health-check.sh"
     deploy:
       mode: global
@@ -229,12 +229,12 @@ services:
   worker:
     image: irobaka/devops-worker:${IMAGE_TAG}
     labels:
-      service_name: "worker"
+      sn: "worker"
     logging:
       driver: fluentd
       options:
         tag: "worker"
-        labels: "service_name"
+        labels: "sn"
     command: sh -c "/usr/src/wait-for-it.sh postgres:5432 -t 60 && /usr/src/wait-for-it.sh redis:6379 -t 60 && /usr/src/worker.sh"
     deploy:
       replicas: 2
@@ -306,12 +306,12 @@ services:
   update:
     image: irobaka/devops-app:${IMAGE_TAG}
     labels:
-      service_name: "update"
+      sn: "update"
     logging:
       driver: fluentd
       options:
         tag: "update"
-        labels: "service_name"
+        labels: "sn"
     command: sh -c "/usr/src/wait-for-it.sh postgres:5432 -t 60 && /usr/src/wait-for-it.sh redis:6379 -t 60 && /usr/src/update.sh"
     deploy:
       mode: replicated-job
@@ -356,12 +356,12 @@ services:
   nginx:
     image: irobaka/devops-nginx:${IMAGE_TAG}
     labels:
-      service_name: "nginx"
+      sn: "nginx"
     logging:
       driver: fluentd
       options:
         tag: "nginx"
-        labels: "service_name"
+        labels: "sn"
     command: sh -c "/usr/src/wait-for-it.sh app:9000 -t 90 && nginx -g \"daemon off;\""
     deploy:
       replicas: 2
@@ -397,12 +397,12 @@ services:
   redis:
     image: redis:7.2.4-alpine
     labels:
-      service_name: "redis"
+      sn: "redis"
     logging:
       driver: fluentd
       options:
         tag: "redis"
-        labels: "service_name"
+        labels: "sn"
     deploy:
       placement:
         constraints:
@@ -434,12 +434,12 @@ services:
   postgres:
     image: irobaka/devops-postgres:${IMAGE_TAG}
     labels:
-      service_name: "postgres"
+      sn: "postgres"
     logging:
       driver: fluentd
       options:
         tag: "postgres"
-        labels: "service_name"
+        labels: "sn"
     deploy:
       placement:
         constraints:

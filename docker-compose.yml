@@ -22,12 +22,12 @@ services:
             retries: 3
             start_period: 30s
         labels:
-            service_name: "app"
+            sn: "app"
         logging:
             driver: fluentd
             options:
                 tag: "app"
-                labels: "service_name"
+                labels: "sn"
                 fluentd-address: localhost:24224
         volumes:
             - ./app:/usr/src/app
@@ -72,12 +72,12 @@ services:
         restart: no
         command: sh -c "./update-for-development.sh"
         labels:
-            service_name: "update"
+            sn: "update"
         logging:
             driver: fluentd
             options:
                 tag: "update"
-                labels: "service_name"
+                labels: "sn"
                 fluentd-address: localhost:24224
         volumes:
             - ./composer.json:/usr/src/composer.json
@@ -104,12 +104,12 @@ services:
                 user: ${DOCKER_DEFAULT_USER:-devops}
                 uid: ${DOCKER_DEFAULT_UID:-1000}
         labels:
-            service_name: "scheduler"
+            sn: "scheduler"
         logging:
             driver: fluentd
             options:
                 tag: "scheduler"
-                labels: "service_name"
+                labels: "sn"
                 fluentd-address: localhost:24224
         volumes:
             - ./app:/usr/src/app
@@ -156,12 +156,12 @@ services:
             retries: 3
             start_period: 30s
         labels:
-            service_name: "worker"
+            sn: "worker"
         logging:
             driver: fluentd
             options:
                 tag: "worker"
-                labels: "service_name"
+                labels: "sn"
                 fluentd-address: localhost:24224
         volumes:
             - ./app:/usr/src/app
@@ -196,12 +196,12 @@ services:
         image: redis:7.2.4-alpine
         restart: unless-stopped
         labels:
-            service_name: "redis"
+            sn: "redis"
         logging:
             driver: fluentd
             options:
                 tag: "redis"
-                labels: "service_name"
+                labels: "sn"
                 fluentd-address: localhost:24224
         volumes:
             - redis:/data
@@ -230,12 +230,12 @@ services:
             PGUSER: ${DB_USERNAME:-postgres}
             POSTGRES_DB: ${DB_DATABASE:-devops}
         labels:
-            service_name: "postgres"
+            sn: "postgres"
         logging:
             driver: fluentd
             options:
                 tag: "postgres"
-                labels: "service_name"
+                labels: "sn"
                 fluentd-address: localhost:24224
         volumes:
             - postgres:/var/lib/postgresql/data
@@ -266,12 +266,12 @@ services:
             retries: 3
             start_period: 30s
         labels:
-            service_name: "nginx"
+            sn: "nginx"
         logging:
             driver: fluentd
             options:
                 tag: "nginx"
-                labels: "service_name"
+                labels: "sn"
                 fluentd-address: localhost:24224
         ports:
             - "80:80"
@@ -290,12 +290,12 @@ services:
             context: .
             dockerfile: docker/Dockerfile.frontend
         labels:
-            service_name: "frontend"
+            sn: "frontend"
         logging:
             driver: fluentd
             options:
                 tag: "frontend"
-                labels: "service_name"
+                labels: "sn"
                 fluentd-address: localhost:24224
         volumes:
             - ./app:/usr/src/app
@@ -324,12 +324,12 @@ services:
     minio:
         image: bitnami/minio:latest
         labels:
-            service_name: "minio"
+            sn: "minio"
         logging:
             driver: fluentd
             options:
                 tag: "minio"
-                labels: "service_name"
+                labels: "sn"
                 fluentd-address: localhost:24224
         restart: unless-stopped
         volumes:
