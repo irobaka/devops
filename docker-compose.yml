@@ -1,7 +1,9 @@
 volumes:
-    devops_redis:
-    devops_postgres:
+    redis:
+    postgres:
     minio:
+    loki:
+    grafana:
 
 services:
     app:
@@ -13,8 +15,23 @@ services:
             args:
                 user: ${DOCKER_DEFAULT_USER:-devops}
                 uid: ${DOCKER_DEFAULT_UID:-1000}
+        healthcheck:
+            test: [ "CMD", "nc", "-zv", "localhost", "9000" ]
+            interval: 30s
+            timeout: 5s
+            retries: 3
+            start_period: 30s
+        labels:
+            sn: "app"
+        logging:
+            driver: fluentd
+            options:
+                tag: "app"
+                labels: "sn"
+                fluentd-address: localhost:24224
         volumes:
             - ./app:/usr/src/app
+            - ./bootstrap:/usr/src/bootstrap
             - ./config:/usr/src/config
             - ./database:/usr/src/database
             - ./resources:/usr/src/resources
@@ -27,15 +44,20 @@ services:
             - ./phpstan.neon.dist:/usr/src/phpstan.neon.dist
             - ./phpunit.xml:/usr/src/phpunit.xml
             - ./public:/usr/src/public
+            - ./deployment/config/php-fpm/php-dev.ini:/usr/local/etc/php/conf.d/php.ini
         depends_on:
             postgres:
                 condition: service_healthy
             redis:
                 condition: service_healthy
             update:
-                condition: service_started
+                condition: service_completed_successfully
             minio:
                 condition: service_healthy
+            fluentbit:
+                condition: service_started
+        links:
+            -   fluentbit
         extra_hosts:
             - "host.docker.internal:host-gateway"
 
@@ -49,17 +71,31 @@ services:
                 uid: ${DOCKER_DEFAULT_UID:-1000}
         restart: no
         command: sh -c "./update-for-development.sh"
+        labels:
+            sn: "update"
+        logging:
+            driver: fluentd
+            options:
+                tag: "update"
+                labels: "sn"
+                fluentd-address: localhost:24224
         volumes:
             - ./composer.json:/usr/src/composer.json
             - ./composer.lock:/usr/src/composer.lock
             - ./.env:/usr/src/.env
+            - ./deployment/bin/update.sh:/usr/src/update.sh
             - ./deployment/bin/update-for-development.sh:/usr/src/update-for-development.sh
         depends_on:
             postgres:
                 condition: service_healthy
+            fluentbit:
+                condition: service_started
+        links:
+            - fluentbit
 
     scheduler:
         restart: unless-stopped
+        command: sh -c "sleep 60 && /usr/src/scheduler.sh"
         build:
             context: .
             dockerfile: docker/Dockerfile.php
@@ -67,23 +103,40 @@ services:
             args:
                 user: ${DOCKER_DEFAULT_USER:-devops}
                 uid: ${DOCKER_DEFAULT_UID:-1000}
+        labels:
+            sn: "scheduler"
+        logging:
+            driver: fluentd
+            options:
+                tag: "scheduler"
+                labels: "sn"
+                fluentd-address: localhost:24224
         volumes:
             - ./app:/usr/src/app
+            - ./bootstrap:/usr/src/bootstrap
             - ./config:/usr/src/config
             - ./database:/usr/src/database
             - ./routes:/usr/src/routes
             - ./storage:/usr/src/storage
             - ./tests:/usr/src/tests
             - ./.env:/usr/src/.env
+            - ./composer.json:/usr/src/composer.json
+            - ./composer.lock:/usr/src/composer.lock
+            - ./phpunit.xml:/usr/src/phpunit.xml
+            - ./scheduler.sh:/usr/src/scheduler.sh
         depends_on:
             postgres:
                 condition: service_healthy
             redis:
                 condition: service_healthy
             update:
-                condition: service_started
+                condition: service_completed_successfully
             minio:
                 condition: service_healthy
+            fluentbit:
+                condition: service_started
+        links:
+            - fluentbit
         extra_hosts:
             - "host.docker.internal:host-gateway"
 
@@ -96,31 +149,62 @@ services:
             args:
                 user: ${DOCKER_DEFAULT_USER:-devops}
                 uid: ${DOCKER_DEFAULT_UID:-1000}
+        healthcheck:
+            test: [ "CMD", "php", "/usr/src/artisan", "queue:monitor", "default" ]
+            interval: 30s
+            timeout: 5s
+            retries: 3
+            start_period: 30s
+        labels:
+            sn: "worker"
+        logging:
+            driver: fluentd
+            options:
+                tag: "worker"
+                labels: "sn"
+                fluentd-address: localhost:24224
         volumes:
             - ./app:/usr/src/app
+            - ./bootstrap:/usr/src/bootstrap
             - ./config:/usr/src/config
             - ./database:/usr/src/database
             - ./routes:/usr/src/routes
             - ./storage:/usr/src/storage
             - ./tests:/usr/src/tests
             - ./.env:/usr/src/.env
+            - ./composer.json:/usr/src/composer.json
+            - ./composer.lock:/usr/src/composer.lock
+            - ./phpunit.xml:/usr/src/phpunit.xml
+            - ./worker.sh:/usr/src/worker.sh
         depends_on:
             postgres:
                 condition: service_healthy
             redis:
                 condition: service_healthy
             update:
-                condition: service_started
+                condition: service_completed_successfully
             minio:
                 condition: service_healthy
+            fluentbit:
+                condition: service_started
+        links:
+            - fluentbit
         extra_hosts:
             - "host.docker.internal:host-gateway"
 
     redis:
         image: redis:7.2.4-alpine
         restart: unless-stopped
+        labels:
+            sn: "redis"
+        logging:
+            driver: fluentd
+            options:
+                tag: "redis"
+                labels: "sn"
+                fluentd-address: localhost:24224
         volumes:
-            - devops_redis:/data
+            - redis:/data
         ports:
             - "63790:6379"
         healthcheck:
@@ -129,6 +213,11 @@ services:
             timeout: 5s
             retries: 3
             start_period: 30s
+        depends_on:
+            fluentbit:
+                condition: service_started
+        links:
+            - fluentbit
 
     postgres:
         build:
@@ -140,8 +229,16 @@ services:
             POSTGRES_USER: ${DB_USERNAME:-postgres}
             PGUSER: ${DB_USERNAME:-postgres}
             POSTGRES_DB: ${DB_DATABASE:-devops}
+        labels:
+            sn: "postgres"
+        logging:
+            driver: fluentd
+            options:
+                tag: "postgres"
+                labels: "sn"
+                fluentd-address: localhost:24224
         volumes:
-            - devops_postgres:/var/lib/postgresql/data
+            - postgres:/var/lib/postgresql/data
         ports:
             - "54320:5432"
         healthcheck:
@@ -150,18 +247,41 @@ services:
             timeout: 5s
             retries: 3
             start_period: 30s
+        depends_on:
+            fluentbit:
+                condition: service_started
+        links:
+            - fluentbit
 
     nginx:
+        restart: unless-stopped
         build:
             context: .
             dockerfile: docker/Dockerfile.nginx
             target: dev
-        restart: unless-stopped
+        healthcheck:
+            test: [ "CMD", "curl", "-f", "http://localhost/up" ]
+            interval: 30s
+            timeout: 5s
+            retries: 3
+            start_period: 30s
+        labels:
+            sn: "nginx"
+        logging:
+            driver: fluentd
+            options:
+                tag: "nginx"
+                labels: "sn"
+                fluentd-address: localhost:24224
         ports:
             - "80:80"
         depends_on:
             app:
                 condition: service_started
+            fluentbit:
+                condition: service_started
+        links:
+            - fluentbit
 
     frontend:
         restart: unless-stopped
@@ -169,6 +289,14 @@ services:
         build:
             context: .
             dockerfile: docker/Dockerfile.frontend
+        labels:
+            sn: "frontend"
+        logging:
+            driver: fluentd
+            options:
+                tag: "frontend"
+                labels: "sn"
+                fluentd-address: localhost:24224
         volumes:
             - ./app:/usr/src/app
             - ./config:/usr/src/config
@@ -188,9 +316,21 @@ services:
         depends_on:
             app:
                 condition: service_started
+            fluentbit:
+                condition: service_started
+        links:
+            - fluentbit
 
     minio:
         image: bitnami/minio:latest
+        labels:
+            sn: "minio"
+        logging:
+            driver: fluentd
+            options:
+                tag: "minio"
+                labels: "sn"
+                fluentd-address: localhost:24224
         restart: unless-stopped
         volumes:
             -   minio:/bitnami/minio/data
@@ -207,3 +347,33 @@ services:
             timeout: 5s
             retries: 3
             start_period: 30s
+        depends_on:
+            fluentbit:
+                condition: service_started
+        links:
+            - fluentbit
+
+    fluentbit:
+        build:
+            context: .
+            dockerfile: docker/Dockerfile.fluentbit
+        deploy:
+            mode: global
+        ports:
+            - "24224:24224"
+        environment:
+            - LOKI_URL=http://loki:3100/loki/api/v1/push
+
+    loki:
+        build:
+            context: .
+            dockerfile: docker/Dockerfile.loki
+        volumes:
+            - loki:/loki
+
+    grafana:
+        image: grafana/grafana:11.1.0
+        ports:
+            - "3030:3000"
+        volumes:
+            - grafana:/var/lib/grafana

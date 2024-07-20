@@ -18,5 +18,6 @@ runs:
         ./deployment/bin/remove-image.sh devops-app ${{ inputs.image-tag }} ${{ inputs.dockerhub-username }} ${{ inputs.dockerhub-password }}
         ./deployment/bin/remove-image.sh devops-worker ${{ inputs.image-tag }} ${{ inputs.dockerhub-username }} ${{ inputs.dockerhub-password }}
         ./deployment/bin/remove-image.sh devops-scheduler ${{ inputs.image-tag }} ${{ inputs.dockerhub-username }} ${{ inputs.dockerhub-password }}
+        ./deployment/bin/remove-image.sh devops-health-check ${{ inputs.image-tag }} ${{ inputs.dockerhub-username }} ${{ inputs.dockerhub-password }}
         ./deployment/bin/remove-image.sh devops-postgres ${{ inputs.image-tag }} ${{ inputs.dockerhub-username }} ${{ inputs.dockerhub-password }}
       shell: bash

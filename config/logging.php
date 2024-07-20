@@ -1,9 +1,19 @@
 <?php
 
+use Monolog\Formatter\JsonFormatter;
 use Monolog\Handler\NullHandler;
 use Monolog\Handler\StreamHandler;
 use Monolog\Handler\SyslogUdpHandler;
 use Monolog\Processor\PsrLogMessageProcessor;
+use Rollbar\Laravel\MonologHandler;
+
+if (env('APP_ENV') === 'production') {
+    $channels = ['json', 'rollbar'];
+} elseif (env('APP_ENV') === 'staging') {
+    $channels = ['daily', 'json', 'rollbar'];
+} else {
+    $channels = ['daily', 'json'];
+}
 
 return [
 
@@ -54,7 +64,7 @@ return [
 
         'stack' => [
             'driver' => 'stack',
-            'channels' => explode(',', env('LOG_STACK', 'single')),
+            'channels' => $channels,
             'ignore_exceptions' => false,
         ],
 
@@ -105,6 +115,14 @@ return [
             'processors' => [PsrLogMessageProcessor::class],
         ],
 
+        'stdout' => [
+            'driver' => 'monolog',
+            'handler' => StreamHandler::class,
+            'with' => [
+                'stream' => 'php://stdout',
+            ],
+        ],
+
         'syslog' => [
             'driver' => 'syslog',
             'level' => env('LOG_LEVEL', 'debug'),
@@ -127,6 +145,26 @@ return [
             'path' => storage_path('logs/laravel.log'),
         ],
 
+        'rollbar' => [
+            'driver' => 'monolog',
+            'handler' => MonologHandler::class,
+            'access_token' => env('ROLLBAR_TOKEN'),
+            'level' => 'warning',
+            'person_fn' => 'Auth::user',
+            'capture_email' => true,
+            'capture_username' => true,
+        ],
+
+        'json' => [
+            'driver' => 'monolog',
+            'level' => env('LOG_LEVEL', 'debug'),
+            'handler' => StreamHandler::class,
+            'formatter' => JsonFormatter::class,
+            'with' => [
+                'stream' => 'php://stdout',
+            ],
+            'processors' => [PsrLogMessageProcessor::class],
+        ],
     ],
 
 ];

@@ -15,7 +15,6 @@ RUN apt-get update && apt-get install -y \
     curl \
     zip \
     unzip \
-    supervisor \
     libssl-dev \
     postgresql-client \
     s3cmd \
@@ -40,7 +39,7 @@ RUN mkdir -p /home/$user/.composer && \
     chown -R $user:$user /usr/src
 
 COPY ../composer*.json /usr/src/
-COPY ../deployment/config/php-fpm/php.ini /usr/local/etc/php/conf.d/php.ini
+COPY ../deployment/config/php-fpm/php-prod.ini /usr/local/etc/php/conf.d/php.ini
 COPY ../deployment/config/php-fpm/www.conf /usr/local/etc/php-fpm.d/www.conf
 COPY ../deployment/bin/update.sh /usr/src/update.sh
 COPY ../deployment/bin/update-for-development.sh /usr/src/update-for-development.sh
@@ -77,8 +76,7 @@ FROM dev as prod
 COPY --from=assets /usr/src/public/build ./public/build
 
 FROM dev as dev_worker
-COPY ../deployment/config/supervisor/supervisord.conf /etc/supervisor/conf.d/supervisor.conf
-CMD ["/bin/sh", "/usr/src/worker-development.sh"]
+CMD ["/bin/sh", "/usr/src/worker.sh"]
 
 FROM dev as dev_scheduler
 CMD ["/bin/sh", "/usr/src/scheduler-development.sh"]
@@ -88,3 +86,6 @@ CMD ["/bin/sh", "-c", "/usr/src/worker.sh"]
 
 FROM base as prod_scheduler
 CMD ["/bin/sh", "/usr/src/scheduler.sh"]
+
+FROM base as prod_health_check
+CMD ["/bin/sh", "/usr/src/health-check.sh"]

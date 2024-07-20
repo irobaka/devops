@@ -7,10 +7,14 @@
     "require": {
         "php": "^8.2",
         "ext-pdo": "*",
+        "doctrine/dbal": "^4.0",
         "laravel/framework": "^11.0",
         "laravel/tinker": "^2.9",
         "league/flysystem-aws-s3-v3": "^3.28",
-        "spatie/laravel-backup": "^8.8"
+        "rollbar/rollbar-laravel": "^8.0",
+        "spatie/cpu-load-health-check": "^1.0",
+        "spatie/laravel-backup": "^8.8",
+        "spatie/laravel-health": "^1.29"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",

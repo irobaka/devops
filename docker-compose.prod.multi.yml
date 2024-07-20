@@ -2,10 +2,19 @@ volumes:
   redis:
   postgres:
   minio:
+  loki:
+  grafana:
 
 services:
   app:
     image: irobaka/devops-app:${IMAGE_TAG}
+    labels:
+      sn: "app"
+    logging:
+      driver: fluentd
+      options:
+        tag: "app"
+        labels: "sn"
     command: sh -c "/usr/src/wait-for-it.sh postgres:5432 -t 60 && /usr/src/wait-for-it.sh redis:6379 -t 60 && php-fpm"
     deploy:
       replicas: 4
@@ -46,7 +55,7 @@ services:
       - SESSION_DRIVER=redis
       - FILESYSTEM_DISK=uploads
       - LOG_CHANNEL=stack
-      - LOG_LEVEL=error
+      - LOG_LEVEL=warning
       - DB_CONNECTION=pgsql
       - DB_HOST=postgres
       - DB_PORT=5432
@@ -69,6 +78,7 @@ services:
       - MINIO_URL_ENDPOINT=http://minio:9000
       - MINIO_ACCESS_KEY_ID=${MINIO_ACCESS_KEY_ID}
       - MINIO_SECRET_ACCESS_KEY=${MINIO_SECRET_ACCESS_KEY}
+      - ROLLBAR_TOKEN=${ROLLBAR_TOKEN}
     depends_on:
       - postgres
       - redis
@@ -77,6 +87,13 @@ services:
 
   scheduler:
     image: irobaka/devops-scheduler:${IMAGE_TAG}
+    labels:
+      sn: "scheduler"
+    logging:
+      driver: fluentd
+      options:
+        tag: "scheduler"
+        labels: "sn"
     command: sh -c "/usr/src/wait-for-it.sh postgres:5432 -t 60 && /usr/src/wait-for-it.sh redis:6379 -t 60 && /usr/src/scheduler.sh"
     deploy:
       replicas: 1
@@ -110,7 +127,7 @@ services:
       - SESSION_DRIVER=redis
       - FILESYSTEM_DISK=uploads
       - LOG_CHANNEL=stack
-      - LOG_LEVEL=error
+      - LOG_LEVEL=warning
       - DB_CONNECTION=pgsql
       - DB_HOST=postgres
       - DB_PORT=5432
@@ -133,6 +150,76 @@ services:
       - MINIO_URL_ENDPOINT=http://minio:9000
       - MINIO_ACCESS_KEY_ID=${MINIO_ACCESS_KEY_ID}
       - MINIO_SECRET_ACCESS_KEY=${MINIO_SECRET_ACCESS_KEY}
+      - ROLLBAR_TOKEN=${ROLLBAR_TOKEN}
+    depends_on:
+      - postgres
+      - redis
+      - update
+      - minio
+
+  health-check:
+    image: irobaka/devops-health-check:${IMAGE_TAG}
+    labels:
+      sn: "health-check"
+    logging:
+      driver: fluentd
+      options:
+        tag: "health-check"
+        labels: "sn"
+    command: sh -c "/usr/src/wait-for-it.sh postgres:5432 -t 60 && /usr/src/wait-for-it.sh redis:6379 -t 60 && /usr/src/health-check.sh"
+    deploy:
+      mode: global
+      restart_policy:
+        condition: any
+        delay: 60s
+        window: 40s
+      update_config:
+        parallelism: 1
+        delay: 10s
+        failure_action: pause
+        monitor: 20s
+        order: stop-first
+      rollback_config:
+        parallelism: 1
+        delay: 10s
+        failure_action: pause
+        monitor: 20s
+        order: stop-first
+    environment:
+      - APP_NAME=devops
+      - APP_ENV=production
+      - APP_KEY=${APP_KEY}
+      - APP_DEBUG=false
+      - APP_URL=http://localhost
+      - BACKUP_NAME=${BACKUP_NAME}
+      - CACHE_STORE=redis
+      - SESSION_DRIVER=redis
+      - FILESYSTEM_DISK=uploads
+      - LOG_CHANNEL=stack
+      - LOG_LEVEL=warning
+      - DB_CONNECTION=pgsql
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_DATABASE=devops
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - QUEUE_CONNECTION=redis
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - MAIL_MAILER=log
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION}
+      - AWS_BUCKET=${AWS_BUCKET}
+      - AWS_ENDPOINT=${AWS_ENDPOINT}
+      - AWS_URL=${AWS_URL}
+      - AWS_USE_PATH_STYLE_ENDPOINT=${AWS_USE_PATH_STYLE_ENDPOINT}
+      - MINIO_DEFAULT_REGION=CRA1
+      - MINIO_URL=http://minio:9000
+      - MINIO_URL_ENDPOINT=http://minio:9000
+      - MINIO_ACCESS_KEY_ID=${MINIO_ACCESS_KEY_ID}
+      - MINIO_SECRET_ACCESS_KEY=${MINIO_SECRET_ACCESS_KEY}
+      - ROLLBAR_TOKEN=${ROLLBAR_TOKEN}
     depends_on:
       - postgres
       - redis
@@ -141,6 +228,13 @@ services:
 
   worker:
     image: irobaka/devops-worker:${IMAGE_TAG}
+    labels:
+      sn: "worker"
+    logging:
+      driver: fluentd
+      options:
+        tag: "worker"
+        labels: "sn"
     command: sh -c "/usr/src/wait-for-it.sh postgres:5432 -t 60 && /usr/src/wait-for-it.sh redis:6379 -t 60 && /usr/src/worker.sh"
     deploy:
       replicas: 2
@@ -179,7 +273,7 @@ services:
       - SESSION_DRIVER=redis
       - FILESYSTEM_DISK=uploads
       - LOG_CHANNEL=stack
-      - LOG_LEVEL=error
+      - LOG_LEVEL=warning
       - DB_CONNECTION=pgsql
       - DB_HOST=postgres
       - DB_PORT=5432
@@ -202,6 +296,7 @@ services:
       - MINIO_URL_ENDPOINT=http://minio:9000
       - MINIO_ACCESS_KEY_ID=${MINIO_ACCESS_KEY_ID}
       - MINIO_SECRET_ACCESS_KEY=${MINIO_SECRET_ACCESS_KEY}
+      - ROLLBAR_TOKEN=${ROLLBAR_TOKEN}
     depends_on:
       - postgres
       - redis
@@ -210,6 +305,13 @@ services:
 
   update:
     image: irobaka/devops-app:${IMAGE_TAG}
+    labels:
+      sn: "update"
+    logging:
+      driver: fluentd
+      options:
+        tag: "update"
+        labels: "sn"
     command: sh -c "/usr/src/wait-for-it.sh postgres:5432 -t 60 && /usr/src/wait-for-it.sh redis:6379 -t 60 && /usr/src/update.sh"
     deploy:
       mode: replicated-job
@@ -247,11 +349,19 @@ services:
       - MINIO_URL_ENDPOINT=http://minio:9000
       - MINIO_ACCESS_KEY_ID=${MINIO_ACCESS_KEY_ID}
       - MINIO_SECRET_ACCESS_KEY=${MINIO_SECRET_ACCESS_KEY}
+      - ROLLBAR_TOKEN=${ROLLBAR_TOKEN}
     depends_on:
       - postgres
 
   nginx:
     image: irobaka/devops-nginx:${IMAGE_TAG}
+    labels:
+      sn: "nginx"
+    logging:
+      driver: fluentd
+      options:
+        tag: "nginx"
+        labels: "sn"
     command: sh -c "/usr/src/wait-for-it.sh app:9000 -t 90 && nginx -g \"daemon off;\""
     deploy:
       replicas: 2
@@ -286,6 +396,13 @@ services:
 
   redis:
     image: redis:7.2.4-alpine
+    labels:
+      sn: "redis"
+    logging:
+      driver: fluentd
+      options:
+        tag: "redis"
+        labels: "sn"
     deploy:
       placement:
         constraints:
@@ -316,6 +433,13 @@ services:
 
   postgres:
     image: irobaka/devops-postgres:${IMAGE_TAG}
+    labels:
+      sn: "postgres"
+    logging:
+      driver: fluentd
+      options:
+        tag: "postgres"
+        labels: "sn"
     deploy:
       placement:
         constraints:
@@ -385,3 +509,32 @@ services:
       MINIO_ROOT_USER: ${MINIO_ACCESS_KEY_ID}
       MINIO_ROOT_PASSWORD: ${MINIO_SECRET_ACCESS_KEY}
       MINIO_DEFAULT_BUCKETS: uploads,public
+
+  fluentbit:
+    image: irobaka/devops-fluentbit:${IMAGE_TAG}
+    deploy:
+      mode: global
+    ports:
+      - "24224:24224"
+    environment:
+      - LOKI_URL=http://loki:3100/loki/api/v1/push
+
+  loki:
+    image: irobaka/devops-loki:${IMAGE_TAG}
+    deploy:
+      placement:
+        constraints:
+          - "node.labels.db==true"
+    volumes:
+      - loki:/loki
+
+  grafana:
+    image: grafana/grafana:11.1.0
+    deploy:
+      placement:
+        constraints:
+          - "node.labels.db!=true"
+    ports:
+      - "3030:3000"
+    volumes:
+      - grafana:/var/lib/grafana
