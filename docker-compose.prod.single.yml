@@ -374,7 +374,7 @@ services:
         monitor: 20s
         order: stop-first
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost/health-check" ]
+      test: [ "CMD", "curl", "-f", "http://localhost/up" ]
       interval: 30s
       timeout: 5s
       retries: 3

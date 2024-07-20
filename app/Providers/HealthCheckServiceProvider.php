@@ -2,12 +2,12 @@
 
 namespace App\Providers;
 
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\ServiceProvider;
 use Spatie\CpuLoadHealthCheck\CpuLoadCheck;
 use Spatie\Health\Checks\Checks\DatabaseCheck;
 use Spatie\Health\Checks\Checks\DatabaseConnectionCountCheck;
 use Spatie\Health\Checks\Checks\DebugModeCheck;
-use Spatie\Health\Checks\Checks\EnvironmentCheck;
 use Spatie\Health\Checks\Checks\RedisCheck;
 use Spatie\Health\Checks\Checks\RedisMemoryUsageCheck;
 use Spatie\Health\Checks\Checks\UsedDiskSpaceCheck;
@@ -17,7 +17,7 @@ class HealthCheckServiceProvider extends ServiceProvider
 {
     public function boot(): void
     {
-        Health::checks([
+        $checks = [
             UsedDiskSpaceCheck::new(),
             DatabaseCheck::new(),
             CpuLoadCheck::new()
@@ -26,10 +26,14 @@ class HealthCheckServiceProvider extends ServiceProvider
             DatabaseConnectionCountCheck::new()
                 ->warnWhenMoreConnectionsThan(50)
                 ->failWhenMoreConnectionsThan(100),
-            DebugModeCheck::new(),
-            EnvironmentCheck::new(),
             RedisCheck::new(),
             RedisMemoryUsageCheck::new(),
-        ]);
+        ];
+
+        if (App::environment('production')) {
+            $checks[] = DebugModeCheck::new();
+        }
+
+        Health::checks($checks);
     }
 }
