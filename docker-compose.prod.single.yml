@@ -167,7 +167,7 @@ services:
       mode: global
       restart_policy:
         condition: any
-        delay: 60s
+        delay: 900s
         window: 40s
       update_config:
         parallelism: 1
@@ -375,7 +375,7 @@ services:
         order: stop-first
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost/up" ]
-      interval: 30s
+      interval: 60s
       timeout: 5s
       retries: 3
       start_period: 1m

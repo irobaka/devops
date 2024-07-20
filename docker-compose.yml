@@ -259,12 +259,6 @@ services:
             context: .
             dockerfile: docker/Dockerfile.nginx
             target: dev
-        healthcheck:
-            test: [ "CMD", "curl", "-f", "http://localhost/up" ]
-            interval: 30s
-            timeout: 5s
-            retries: 3
-            start_period: 30s
         labels:
             sn: "nginx"
         logging:
