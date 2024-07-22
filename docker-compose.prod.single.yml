@@ -81,6 +81,9 @@ services:
       - redis
       - update
       - minio
+      - fluentbit
+      - loki
+      - grafana
 
   scheduler:
     image: irobaka/devops-scheduler:${IMAGE_TAG}
@@ -152,6 +155,9 @@ services:
       - redis
       - update
       - minio
+      - fluentbit
+      - loki
+      - grafana
 
   health-check:
     image: irobaka/devops-health-check:${IMAGE_TAG}
@@ -221,6 +227,9 @@ services:
       - redis
       - update
       - minio
+      - fluentbit
+      - loki
+      - grafana
 
   worker:
     image: irobaka/devops-worker:${IMAGE_TAG}
@@ -295,6 +304,9 @@ services:
       - redis
       - update
       - minio
+      - fluentbit
+      - loki
+      - grafana
 
   update:
     image: irobaka/devops-app:${IMAGE_TAG}
@@ -345,6 +357,9 @@ services:
       - ROLLBAR_TOKEN=${ROLLBAR_TOKEN}
     depends_on:
       - postgres
+      - fluentbit
+      - loki
+      - grafana
 
   nginx:
     image: irobaka/devops-nginx:${IMAGE_TAG}
@@ -383,6 +398,9 @@ services:
       - "80:80"
     depends_on:
       - app
+      - fluentbit
+      - loki
+      - grafana
 
   redis:
     image: redis:7.2.4-alpine
@@ -417,6 +435,10 @@ services:
       start_period: 30s
     volumes:
       - redis:/data
+    depends_on:
+      - fluentbit
+      - loki
+      - grafana
 
   postgres:
     image: irobaka/devops-postgres:${IMAGE_TAG}
@@ -456,6 +478,10 @@ services:
       POSTGRES_DB: ${DB_DATABASE}
     volumes:
       - postgres:/var/lib/postgresql/data
+    depends_on:
+      - fluentbit
+      - loki
+      - grafana
 
   minio:
     image: bitnami/minio:latest
@@ -490,6 +516,10 @@ services:
       MINIO_ROOT_USER: ${MINIO_ACCESS_KEY_ID}
       MINIO_ROOT_PASSWORD: ${MINIO_SECRET_ACCESS_KEY}
       MINIO_DEFAULT_BUCKETS: uploads,public
+    depends_on:
+      - fluentbit
+      - loki
+      - grafana
 
 
   fluentbit:
@@ -505,6 +535,8 @@ services:
     image: irobaka/devops-loki:${IMAGE_TAG}
     volumes:
       - loki:/loki
+    depends_on:
+      - fluentbit
 
   grafana:
     image: grafana/grafana:11.1.0
@@ -512,3 +544,6 @@ services:
       - "3030:3000"
     volumes:
       - grafana:/var/lib/grafana
+    depends_on:
+      - fluentbit
+      - loki

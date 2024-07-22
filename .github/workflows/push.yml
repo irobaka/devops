@@ -150,4 +150,4 @@ jobs:
           minio-access-key: ${{ secrets.MINIO_ACCESS_KEY_ID }}
           minio-secret-access-key: ${{ secrets.MINIO_SECRET_ACCESS_KEY }}
           docker-compose-filename: docker-compose.stage.yml
-          rollbar-token: ${{ secrets.ROLLBAR_TOKEN }}
+          rollbar-token: ""

@@ -9,10 +9,8 @@ use Rollbar\Laravel\MonologHandler;
 
 if (env('APP_ENV') === 'production') {
     $channels = ['json', 'rollbar'];
-} elseif (env('APP_ENV') === 'staging') {
-    $channels = ['daily', 'json', 'rollbar'];
 } else {
-    $channels = ['daily', 'json'];
+    $channels = ['daily', 'stdout'];
 }
 
 return [
