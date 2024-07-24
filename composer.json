@@ -9,6 +9,7 @@
         "ext-pdo": "*",
         "doctrine/dbal": "^4.0",
         "laravel/framework": "^11.0",
+        "laravel/telescope": "^5.1",
         "laravel/tinker": "^2.9",
         "league/flysystem-aws-s3-v3": "^3.28",
         "rollbar/rollbar-laravel": "^8.0",
@@ -60,7 +61,9 @@
     },
     "extra": {
         "laravel": {
-            "dont-discover": []
+            "dont-discover": [
+                "laravel/telescope"
+            ]
         }
     },
     "config": {
