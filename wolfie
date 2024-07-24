@@ -168,7 +168,7 @@ elif [ "$1" == "bin" ]; then
     fi
 
 # Proxy Composer commands to the "composer" binary on the application container...
-elif [ "$1" == "composer" ]; then
+elif [ "$1" == "composer" ] || [ "$1" == "c" ]; then
     shift 1
 
     if [ "$EXEC" == "yes" ]; then
